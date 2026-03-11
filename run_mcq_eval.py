@@ -59,11 +59,11 @@ MODELS = [
     "SeaLLMs/SeaLLMs-v3-7B-Chat",
     #korean models
     "naver-hyperclovax/HyperCLOVAX-SEED-Omni-8B" #instruct
-    "beomi/Llama-3-Open-Ko-8B",
-    "EleutherAI/polyglot-ko-12.8b",
-    "EleutherAI/polyglot-ko-5.8b",
-    #multilingual models
-    "CohereLabs/aya-expanse-8b"  #instruct
+    # "beomi/Llama-3-Open-Ko-8B",
+    # "EleutherAI/polyglot-ko-12.8b",
+    # "EleutherAI/polyglot-ko-5.8b",
+    # #multilingual models
+    # "CohereLabs/aya-expanse-8b"  #instruct
 ]
 
 
@@ -198,7 +198,7 @@ def evaluate_model(model_id: str, subsets: list[str], batch_size: int, max_new_t
     raw_records = []
     for subset in subsets:
         print(f"  Subset: {subset}", flush=True)
-        ds = load_dataset(DATASET, subset, split="test", local_files_only=local_only)
+        ds = load_dataset(DATASET, subset, split="test")
         if max_samples_per_subset is not None:
             ds = ds.select(range(min(max_samples_per_subset, len(ds))))
         lang = subset_lang(subset)
@@ -253,7 +253,7 @@ def main():
     ap.add_argument("--outdir", default="results")
     ap.add_argument("--batch_size", type=int, default=8)
     ap.add_argument("--max_new_tokens", type=int, default=8)
-    ap.add_argument("--max_samples_per_subset", type=int, default=None)
+    ap.add_argument("--max_samples_per_subset", type=int, default=100)
     ap.add_argument("--no-hf-download", action="store_true", default=False,
                     help="Disable HuggingFace downloads; use local cache only (errors if not cached).")
     args = ap.parse_args()
