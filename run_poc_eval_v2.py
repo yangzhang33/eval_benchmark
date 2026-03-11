@@ -8,7 +8,7 @@ PoC: Language × Locality evaluation (bilingual 60 QA, 120 prompts)
 - Saves raw generations + simple metrics (exact match + "hallucination-like" heuristic)
 
 Usage:
-  python run_poc_eval.py \
+  python run_poc_eval_v2.py \
     --data data/poc_60qa_bilingual.jsonl \
     --models Qwen/Qwen2.5-7B meta-llama/Meta-Llama-3.1-8B \
     --outdir data/results \
@@ -222,6 +222,7 @@ def main():
     for model_id in args.models:
         print(f"\n=== Running model: {model_id} on {len(examples)} prompts ===")
         tok = AutoTokenizer.from_pretrained(model_id, use_fast=True, trust_remote_code=True)
+        tok.padding_side = "left"
         if tok.pad_token_id is None:
             tok.pad_token = tok.eos_token
 
