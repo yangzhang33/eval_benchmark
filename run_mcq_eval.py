@@ -250,10 +250,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--models", nargs="+", default=MODELS)
     ap.add_argument("--subsets", nargs="+", default=SUBSETS)
-    ap.add_argument("--outdir", default="results")
+    ap.add_argument("--outdir", default="results/lite_eval")
     ap.add_argument("--batch_size", type=int, default=8)
-    ap.add_argument("--max_new_tokens", type=int, default=8)
-    ap.add_argument("--max_samples_per_subset", type=int, default=100)
+    ap.add_argument("--max_new_tokens", type=int, default=1)
+    ap.add_argument("--max_samples_per_subset", type=int, default=None)
     ap.add_argument("--no-hf-download", action="store_true", default=False,
                     help="Disable HuggingFace downloads; use local cache only (errors if not cached).")
     args = ap.parse_args()
