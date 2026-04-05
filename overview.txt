@@ -1,0 +1,158 @@
+📄 Title (working)
+
+Language-Conditioned Access to Localized Knowledge in Large Language Models
+
+
+1️⃣ Motivation
+
+Large language models (LLMs) are commonly assumed to encode knowledge in a language-independent manner. Under this assumption, a model should be able to retrieve the same knowledge regardless of the language used in the query.
+
+However, in practice, training data for LLMs is highly imbalanced across languages and regions. Knowledge about specific countries, institutions, and cultural practices is often predominantly represented in local languages (e.g., Chinese knowledge in Chinese corpora, Arabic knowledge in Arabic corpora). This raises an important but underexplored question:
+
+    Is access to localized knowledge in LLMs conditioned on the language of the query?
+
+If this is the case, then multilingual users may obtain different answers depending on the language they use to ask the same question. This would have important implications for:
+
+  - real-world usage of LLMs in multilingual settings
+  - evaluation of multilingual models
+  - assumptions about language-neutral knowledge representations
+
+A key challenge in studying this problem is that language effects are confounded with general language proficiency. For example, a model may perform worse in a language simply because it has weaker language understanding, not because knowledge is inaccessible.
+
+Therefore, a central goal of this work is to disentangle language proficiency from knowledge access in multilingual LLM evaluation.
+
+
+2️⃣ Research Questions
+
+We study the following research questions:
+
+RQ1: Language-conditioned knowledge access
+  Does the language of the query affect a model's ability to access localized knowledge, beyond differences in general language proficiency?
+
+RQ2: Robustness across locales
+  Is the effect of query language on localized knowledge consistent across different cultural and linguistic contexts?
+
+RQ3: Model-dependent behavior
+  Do different types of models (e.g., regional vs globally trained models) exhibit different patterns in how query language affects knowledge access?
+
+(Optional) RQ4: Behavioral effects
+  Does query language influence model behavior when knowledge access fails, such as abstention or confident incorrect answers?
+
+
+3️⃣ Methodology
+
+3.1 Overview
+
+To study the effect of query language on knowledge access, we design a controlled evaluation framework that separates:
+
+  - language proficiency
+  - knowledge access
+
+The key idea is to compare model performance under different combinations of:
+
+  - question type (culture-agnostic vs culture-specific)
+  - query language (local language vs English)
+
+
+3.2 Dataset Construction
+
+For each locale (e.g., Chinese, Greek, Arabic, Hindi), we construct three subsets:
+
+Culture-agnostic (CA):
+  - Source: Subsets of the Global-MMLU dataset.
+  - Selection: We directly use the Culture-Agnostic (CA) labels provided by the original Global-MMLU authors to ensure standard benchmarks for language proficiency.
+
+Culture-specific (CS):
+  - Source: Native/Regional MMLU datasets (e.g., Arabic-MMLU, CMMLU).
+  - Initial Filtering: We extract questions that the original authors explicitly identified as related to local culture.
+  - Human Refinement: Human annotators then review these questions to verify if they strictly require local knowledge (e.g., specific laws, historical events, social norms) to solve, ensuring high purity of the CS set.
+
+Translated culture-specific (CS_EN):
+  - Process: The verified CS questions are translated into English using Claude.
+  - Quality Control: All translations undergo human post-editing and verification to ensure that the semantic meaning and technical terminology remain identical to the original local-language version.
+
+
+3.3 Evaluation Setup
+
+Each model is evaluated on:
+
+  - CA (local language)
+  - CA (English)
+  - CS (local language)
+  - CS_EN (English translation)
+
+All questions are formatted as multiple-choice questions (MCQ) to ensure consistent and low-noise evaluation.
+
+Scoring is done via log-likelihood evaluation: the model is given the full prompt (question + options) and we read off the log-probability of each answer token (A, B, C, D) at the final prompt position using log-softmax over the vocabulary. The predicted answer is the letter with the highest log-probability.
+
+
+3.4 Metrics
+
+We define three core metrics to disentangle language proficiency from knowledge access.
+
+GlobalGap (language proficiency)
+  GlobalGap = Acc(CA, local) − Acc(CA, English)
+  Interpretation:
+    - Captures performance differences due to language ability alone
+    - Since CA questions do not depend on local knowledge, this isolates language effects
+
+LocalGap (language + knowledge)
+  LocalGap = Acc(CS, local) − Acc(CS, English)
+  Interpretation:
+    - Captures combined effects of:
+        · language ability
+        · access to localized knowledge
+
+KnowledgeGap (core metric)
+  KnowledgeGap = LocalGap − GlobalGap
+  Interpretation:
+    - Removes the contribution of language proficiency
+    - Isolates the effect of query language on knowledge access
+
+This formulation is equivalent to a difference-in-differences design, allowing us to control for language-related confounders.
+
+
+3.5 Models
+
+We evaluate a diverse set of open-source LLMs, including:
+
+  - Regional models trained with strong local language and cultural data
+  - Global models trained primarily on English or mixed corpora but with different contries like llama and qwen
+  - Multilingual models optimized for cross-lingual performance
+
+This diversity allows us to analyze whether language-conditioned knowledge access varies across model types.
+
+
+3.6 Optional: Behavioral Analysis
+
+To further understand model behavior, we optionally extend the evaluation by allowing models to select:
+
+    E = I don't know
+
+Each question now has five candidate answers (A–D + E), and the model's choice is determined by log-likelihood scoring over all five options. This enables measurement of four metrics per subset:
+
+  accuracy       = correct / n
+    Standard accuracy over all n questions.
+
+  abstain_rate   = abstained / n
+    Fraction of questions where the model selected E (I don't know), capturing model uncertainty.
+
+  conf_err_rate  = conf_wrong / n
+    Fraction of questions where the model gave a wrong answer without abstaining (confident errors).
+
+  cond_acc       = correct / (correct + conf_wrong)
+    Accuracy conditioned on the model actually attempting an answer (i.e., excluding abstentions).
+    Measures answer quality when the model is confident.
+
+These metrics provide additional insight into how models behave when knowledge access fails, separating genuine uncertainty (abstention) from overconfident errors.
+This section is especially designed for studying the hallucination effect of LLMs.
+
+4️⃣ Summary of Approach
+
+This work introduces a controlled framework to study language effects in LLMs by:
+
+  - constructing parallel datasets across languages
+  - separating culture-agnostic and culture-specific knowledge
+  - using a difference-in-differences formulation to isolate knowledge access
+
+This design allows us to systematically investigate whether and how query language influences access to localized knowledge in large language models.

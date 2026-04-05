@@ -1,10 +1,10 @@
 
 from collections import Counter
-from datasets import load_dataset, DatasetDict, concatenate_datasets
+from datasets import load_dataset, DatasetDict, concatenate_datasets, get_dataset_config_names
 from huggingface_hub import HfApi
 
-HF_REPO_ID = "yangzhang33/culture-eval-benchmark"
-LITE_REPO_ID = "yangzhang33/cultural_eval_lite"
+HF_REPO_ID = "yangzhang33/culture-eval-benchmark-cs-filtered"
+LITE_REPO_ID = "yangzhang33/culture-eval-benchmark-cs-filtered-lite"
 MAX_SAMPLES = 1000
 SEED = 42
 
@@ -52,17 +52,17 @@ for lang in CS_CONFIGS:
 
     lite_configs[lang] = sampled
 
-# english_ca — full data
-print("\n=== english_ca ===")
-english_ca = load_dataset(HF_REPO_ID, "english_ca")["test"]
-print(f"Total: {len(english_ca)}")
-lite_configs["english_ca"] = english_ca
+# _ca configs — full data, uploaded as-is
+all_configs = get_dataset_config_names(HF_REPO_ID)
+ca_configs = [c for c in all_configs if c.endswith("_ca")]
+print(f"\nFound {len(ca_configs)} _ca configs: {ca_configs}")
 
-# greek_cs_en — full data
-print("\n=== greek_cs_en ===")
-greek_cs_en = load_dataset(HF_REPO_ID, "greek_cs_en")["test"]
-print(f"Total: {len(greek_cs_en)}")
-lite_configs["greek_cs_en"] = greek_cs_en
+for config_name in ca_configs:
+    print(f"\n=== {config_name} ===")
+    ds = load_dataset(HF_REPO_ID, config_name)
+    for split_name, split_data in ds.items():
+        print(f"  {split_name}: {len(split_data)} examples")
+    lite_configs[config_name] = ds
 
 # Upload
 print(f"\n=== Uploading to {LITE_REPO_ID} ===")
@@ -70,7 +70,12 @@ api = HfApi()
 api.create_repo(repo_id=LITE_REPO_ID, repo_type="dataset", exist_ok=True)
 
 for config_name, data in lite_configs.items():
-    DatasetDict({"test": data}).push_to_hub(LITE_REPO_ID, config_name=config_name)
-    print(f"Uploaded {config_name}: {len(data)} examples")
+    if isinstance(data, DatasetDict):
+        data.push_to_hub(LITE_REPO_ID, config_name=config_name)
+        total = sum(len(s) for s in data.values())
+        print(f"Uploaded {config_name}: {total} examples")
+    else:
+        DatasetDict({"test": data}).push_to_hub(LITE_REPO_ID, config_name=config_name)
+        print(f"Uploaded {config_name}: {len(data)} examples")
 
 print(f"\nDone! Dataset available at: https://huggingface.co/datasets/{LITE_REPO_ID}")

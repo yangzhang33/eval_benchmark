@@ -16,7 +16,7 @@ from pathlib import Path
 
 import torch
 from datasets import load_dataset
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, Mistral3ForConditionalGeneration, MistralCommonBackend
 
 DATASET = "yangzhang33/cultural_eval_lite"
 SUBSETS = [
@@ -30,42 +30,50 @@ SUBSETS = [
 ]
 MODELS = [
     #chinese models
-    "Qwen/Qwen2.5-7B",
-    "Qwen/Qwen2.5-7B-Instruct",
-    "deepseek-ai/deepseek-llm-7b-base",
-    "deepseek-ai/deepseek-llm-7b-chat",
-    #english models
-    "meta-llama/Meta-Llama-3.1-8B",
-    "meta-llama/Llama-3.1-8B-Instruct",
-    "google/gemma-2-9b",
-    "google/gemma-2-9b-it",
-    #greek models
-    "ilsp/Llama-Krikri-8B-Instruct",
-    "ilsp/Meltemi-7B-Instruct-v1.5",
-    #arabic models
-    "inceptionai/jais-13b",
-    "inceptionai/jais-13b-chat",
-    "inceptionai/Jais-2-8B-Chat",
-    "FreedomIntelligence/AceGPT-v2-8B",
-    "FreedomIntelligence/AceGPT-v2-8B-Chat",
-    #hindi models
-    "sarvamai/OpenHathi-7B-Hi-v0.1-Base",
-    "krutrim-ai-labs/Krutrim-1-instruct",
+    # "Qwen/Qwen2.5-7B",
+    # "Qwen/Qwen2.5-7B-Instruct",
+    # "deepseek-ai/deepseek-llm-7b-base",
+    # "deepseek-ai/deepseek-llm-7b-chat",
+    # #english models
+    # "meta-llama/Meta-Llama-3.1-8B",
+    # "meta-llama/Llama-3.1-8B-Instruct",
+    # "google/gemma-2-9b",
+    # "google/gemma-2-9b-it",
+    # #greek models
+    # "ilsp/Llama-Krikri-8B-Instruct",
+    # "ilsp/Meltemi-7B-Instruct-v1.5",
+    # #arabic models not done
+    # "inceptionai/jais-13b",
+    # "inceptionai/jais-13b-chat",
+    # "inceptionai/Jais-2-8B-Chat",
+    # "FreedomIntelligence/AceGPT-v2-8B",
+    # "FreedomIntelligence/AceGPT-v2-8B-Chat",
+    # #hindi models
+    # "sarvamai/OpenHathi-7B-Hi-v0.1-Base",
+    # "krutrim-ai-labs/Krutrim-1-instruct", # not done
     #southeast asian models
-    "aisingapore/Llama-SEA-LION-v3-8B",
-    "aisingapore/Llama-SEA-LION-v3-8B-IT",
-    "SeaLLMs/SeaLLM-7B-v2.5", # instruct
-    "SeaLLMs/SeaLLMs-v3-7B",
-    "SeaLLMs/SeaLLMs-v3-7B-Chat",
+    # "aisingapore/Llama-SEA-LION-v3-8B",
+    # "aisingapore/Llama-SEA-LION-v3-8B-IT",
+    # "SeaLLMs/SeaLLM-7B-v2.5", # instruct
+    # "SeaLLMs/SeaLLMs-v3-7B",
+    # "SeaLLMs/SeaLLMs-v3-7B-Chat",
     #korean models
-    "naver-hyperclovax/HyperCLOVAX-SEED-Omni-8B" #instruct
+    # "naver-hyperclovax/HyperCLOVAX-SEED-Omni-8B" #instruct not done
     # "beomi/Llama-3-Open-Ko-8B",
-    # "EleutherAI/polyglot-ko-12.8b",
-    # "EleutherAI/polyglot-ko-5.8b",
+    # "EleutherAI/polyglot-ko-12.8b", 
+    # "EleutherAI/polyglot-ko-5.8b", 
     # #multilingual models
     # "CohereLabs/aya-expanse-8b"  #instruct
+    # #mistral models
+    "mistralai/Ministral-3-8B-Base-2512",
+    # "mistralai/Ministral-3-8B-Instruct-2512", # not done
 ]
 
+
+MISTRAL3_MODELS = {
+    "mistralai/Ministral-3-8B-Base-2512",
+    "mistralai/Ministral-3-8B-Instruct-2512",
+}
 
 INSTRUCT_KEYWORDS = ("instruct", "-it", "-chat", "-chat-hf")
 
@@ -76,6 +84,30 @@ INSTRUCT_MODEL_OVERRIDES = {
     "naver-hyperclovax/HyperCLOVAX-SEED-Omni-8B",
     "CohereLabs/aya-expanse-8b",
 }
+
+# Jais chat models have no chat_template; use the manual prompt format from the
+# official inference example (core42/jais-*-chat).
+JAIS_CHAT_MODELS = {
+    "inceptionai/jais-13b-chat",
+    "core42/jais-13b-chat",
+}
+
+# AceGPT chat models use a raw "<User>: ... <Assistant>: " prompt format.
+ACEGPT_CHAT_MODELS = {
+    "FreedomIntelligence/AceGPT-v2-8B-Chat",
+}
+
+JAIS_PROMPT_EN = (
+    "### Instruction: Complete the conversation below between [|Human|] and [|AI|]:\n"
+    "### Input: [|Human|] {Question}\n"
+    "### Response: [|AI|]"
+)
+
+JAIS_PROMPT_AR = (
+    "### Instruction: أكمل المحادثة أدناه بين [|Human|] و [|AI|]:\n"
+    "### Input: [|Human|] {Question}\n"
+    "### Response: [|AI|]"
+)
 
 # Localized prompt templates: {lang: (question_label, instruction, answer_label)}
 PROMPT_LANG = {
@@ -128,11 +160,15 @@ SUBSET_LANG_MAP = {
 
 
 def subset_lang(subset: str) -> str:
-    """Infer prompt language from subset name."""
-    if not subset.endswith("_en"):
-        for prefix, lang in SUBSET_LANG_MAP.items():
-            if subset.startswith(prefix) and subset.endswith("_cs"):
-                return lang
+    """Infer prompt language from subset name.
+
+    - language_ca  -> native language
+    - language_cs  -> native language
+    - language_cs_en -> English
+    """
+    for prefix, lang in SUBSET_LANG_MAP.items():
+        if subset.startswith(prefix) and (subset.endswith("_ca") or subset.endswith("_cs")):
+            return lang
     return "en"
 
 
@@ -140,7 +176,7 @@ def is_instruct_model(model_id: str) -> bool:
     return model_id in INSTRUCT_MODEL_OVERRIDES or any(kw in model_id.lower() for kw in INSTRUCT_KEYWORDS)
 
 
-def build_prompt(row: dict, lang: str = "en", tok=None, instruct: bool = False) -> str:
+def build_prompt(row: dict, lang: str = "en", tok=None, instruct: bool = False, model_id: str = "") -> str:
     q_label, instruction, ans_label = PROMPT_LANG[lang]
     text = (
         f"{q_label}{row['question']}\n"
@@ -150,13 +186,37 @@ def build_prompt(row: dict, lang: str = "en", tok=None, instruct: bool = False) 
         f"D. {row['option_d']}\n"
         f"{instruction}\n{ans_label}"
     )
-    if instruct and tok is not None:
-        messages = [{"role": "user", "content": text}]
-        text = tok.apply_chat_template(
-            messages,
-            tokenize=False,
-            add_generation_prompt=True,
-        )
+    if instruct:
+        if model_id in JAIS_CHAT_MODELS:
+            # Jais chat models have no chat_template; use plain MCQ text in the manual format.
+            plain_text = (
+                f"{row['question']}\n"
+                f"A. {row['option_a']}\n"
+                f"B. {row['option_b']}\n"
+                f"C. {row['option_c']}\n"
+                f"D. {row['option_d']}\n"
+                "Answer with only the letter (A, B, C, or D)."
+            )
+            template = JAIS_PROMPT_AR if lang == "ar" else JAIS_PROMPT_EN
+            text = template.format(Question=plain_text)
+        elif model_id in ACEGPT_CHAT_MODELS:
+            # AceGPT-v2-Chat uses a raw "<User>: ... <Assistant>: " prompt format.
+            content = (
+                f"{q_label}{row['question']}\n"
+                f"A. {row['option_a']}\n"
+                f"B. {row['option_b']}\n"
+                f"C. {row['option_c']}\n"
+                f"D. {row['option_d']}\n"
+                f"{instruction}"
+            )
+            text = f"<User>: {content} <Assistant>: "
+        elif tok is not None:
+            messages = [{"role": "user", "content": text}]
+            text = tok.apply_chat_template(
+                messages,
+                tokenize=False,
+                add_generation_prompt=True,
+            )
     return text
 
 
@@ -176,19 +236,29 @@ def extract_answer(text: str) -> str:
 def evaluate_model(model_id: str, subsets: list[str], batch_size: int, max_new_tokens: int, max_samples_per_subset: int | None = None, local_only: bool = False) -> tuple[dict, list]:
     """Load model, run on all subsets, return (accuracy_by_subset, raw_records)."""
     print(f"\n=== Loading {model_id} ===")
-    tok = AutoTokenizer.from_pretrained(model_id, use_fast=True, trust_remote_code=True, local_files_only=local_only)
+    dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
+
+    if model_id in MISTRAL3_MODELS:
+        tok = MistralCommonBackend.from_pretrained(model_id, local_files_only=local_only)
+        model = Mistral3ForConditionalGeneration.from_pretrained(
+            model_id,
+            torch_dtype=dtype,
+            device_map="auto",
+            local_files_only=local_only,
+        )
+    else:
+        tok = AutoTokenizer.from_pretrained(model_id, use_fast=True, trust_remote_code=True, local_files_only=local_only)
+        model = AutoModelForCausalLM.from_pretrained(
+            model_id,
+            torch_dtype=dtype,
+            device_map="auto",
+            trust_remote_code=True,
+            local_files_only=local_only,
+        )
+
     tok.padding_side = "left"
     if tok.pad_token_id is None:
         tok.pad_token = tok.eos_token
-
-    dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
-    model = AutoModelForCausalLM.from_pretrained(
-        model_id,
-        torch_dtype=dtype,
-        device_map="auto",
-        trust_remote_code=True,
-        local_files_only=local_only,
-    )
     model.eval()
 
     instruct = is_instruct_model(model_id)
@@ -202,7 +272,7 @@ def evaluate_model(model_id: str, subsets: list[str], batch_size: int, max_new_t
         if max_samples_per_subset is not None:
             ds = ds.select(range(min(max_samples_per_subset, len(ds))))
         lang = subset_lang(subset)
-        prompts = [build_prompt(row, lang=lang, tok=tok, instruct=instruct) for row in ds]
+        prompts = [build_prompt(row, lang=lang, tok=tok, instruct=instruct, model_id=model_id) for row in ds]
         gold = [row["answer"].strip().upper() for row in ds]
 
         raw_outputs = []
@@ -250,7 +320,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--models", nargs="+", default=MODELS)
     ap.add_argument("--subsets", nargs="+", default=SUBSETS)
-    ap.add_argument("--outdir", default="results/lite_eval")
+    ap.add_argument("--outdir", default="results/lite_eval_v1")
     ap.add_argument("--batch_size", type=int, default=8)
     ap.add_argument("--max_new_tokens", type=int, default=1)
     ap.add_argument("--max_samples_per_subset", type=int, default=None)
@@ -262,7 +332,7 @@ def main():
     outdir.mkdir(parents=True, exist_ok=True)
 
     local_only = args.no_hf_download
-    local_only = True
+    local_only = False
     if local_only:
         print("HF downloads disabled — using local cache only.")
 

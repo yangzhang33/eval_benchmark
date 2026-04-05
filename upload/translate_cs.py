@@ -10,18 +10,19 @@ from botocore.config import Config
 from datasets import load_dataset, DatasetDict, Dataset
 from tqdm import tqdm
 
-HF_REPO_ID = "yangzhang33/cultural_eval_lite"
-BEDROCK_MODEL_ID = "anthropic.claude-3-5-sonnet-20241022-v2:0"
+HF_REPO_ID = "yangzhang33/culture-eval-benchmark-cs-filtered-lite"
+# BEDROCK_MODEL_ID = "anthropic.claude-3-5-sonnet-20241022-v2:0"
+BEDROCK_MODEL_ID = "us.anthropic.claude-sonnet-4-20250514-v1:0"
 
 # ---------------------------------------------------------------------------
 # Configure source languages/configs here
 # ---------------------------------------------------------------------------
 CONFIGS = [
-    # ("chinese_cs",    "Chinese"),
-    # ("arabic_cs",     "Arabic"),
-    # ("greek_cs",      "Greek"),
-    # ("hindi_cs",      "Hindi"),
-    # ("indonesian_cs", "Indonesian"),
+    ("chinese_cs",    "Chinese"),
+    ("arabic_cs",     "Arabic"),
+    ("greek_cs",      "Greek"),
+    ("hindi_cs",      "Hindi"),
+    ("indonesian_cs", "Indonesian"),
     ("korean_cs",     "Korean"),
 ]
 

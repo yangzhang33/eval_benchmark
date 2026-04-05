@@ -1,0 +1,98 @@
+MODELS = [
+    # english models
+    "meta-llama/Meta-Llama-3.1-8B",
+    "meta-llama/Llama-3.1-8B-Instruct",
+    "google/gemma-2-9b",
+    "google/gemma-2-9b-it",
+    # chinese models
+    "Qwen/Qwen2.5-7B",
+    "Qwen/Qwen2.5-7B-Instruct",
+    "deepseek-ai/deepseek-llm-7b-base",
+    "deepseek-ai/deepseek-llm-7b-chat",
+    # arabic models
+    "inceptionai/jais-13b",
+    "inceptionai/jais-13b-chat",
+    "inceptionai/Jais-2-8B-Chat",
+    "FreedomIntelligence/AceGPT-v2-8B",
+    "FreedomIntelligence/AceGPT-v2-8B-Chat",
+    # mistral models
+    "mistralai/Ministral-3-8B-Base-2512",
+    "mistralai/Ministral-3-8B-Instruct-2512",
+    # greek models
+    "ilsp/Llama-Krikri-8B-Instruct",
+    "ilsp/Meltemi-7B-Instruct-v1.5",
+    # hindi models
+    "sarvamai/OpenHathi-7B-Hi-v0.1-Base",
+    "krutrim-ai-labs/Krutrim-1-instruct",
+    # southeast asian models
+    "aisingapore/Llama-SEA-LION-v3-8B",
+    "aisingapore/Llama-SEA-LION-v3-8B-IT",
+    "SeaLLMs/SeaLLM-7B-v2.5",
+    "SeaLLMs/SeaLLMs-v3-7B",
+    "SeaLLMs/SeaLLMs-v3-7B-Chat",
+    # korean models
+    "naver-hyperclovax/HyperCLOVAX-SEED-Omni-8B",
+    "beomi/Llama-3-Open-Ko-8B",
+    "EleutherAI/polyglot-ko-12.8b",
+    "EleutherAI/polyglot-ko-5.8b",
+    # multilingual models
+    "CohereLabs/aya-expanse-8b",
+]
+
+SUBSETS = [
+    "english_ca",
+    "chinese_ca",
+    "chinese_cs",
+    "chinese_cs_en",
+    "arabic_ca",
+    "arabic_cs",
+    "arabic_cs_en",
+    "greek_ca",
+    "greek_cs",
+    "greek_cs_en",
+    "hindi_ca",
+    "hindi_cs",
+    "hindi_cs_en",
+    "indonesian_ca",
+    "indonesian_cs",
+    "indonesian_cs_en",
+    "korean_ca",
+    "korean_cs",
+    "korean_cs_en",
+]
+
+MODEL_COUNTRY = {
+    "meta-llama/Meta-Llama-3.1-8B": "USA",
+    "meta-llama/Llama-3.1-8B-Instruct": "USA",
+    "google/gemma-2-9b": "USA",
+    "google/gemma-2-9b-it": "USA",
+    "Qwen/Qwen2.5-7B": "China",
+    "Qwen/Qwen2.5-7B-Instruct": "China",
+    "deepseek-ai/deepseek-llm-7b-base": "China",
+    "deepseek-ai/deepseek-llm-7b-chat": "China",
+    "inceptionai/jais-13b": "UAE",
+    "inceptionai/jais-13b-chat": "UAE",
+    "inceptionai/Jais-2-8B-Chat": "UAE",
+    "FreedomIntelligence/AceGPT-v2-8B": "UAE",
+    "FreedomIntelligence/AceGPT-v2-8B-Chat": "UAE",
+    "mistralai/Ministral-3-8B-Base-2512": "France",
+    "mistralai/Ministral-3-8B-Instruct-2512": "France",
+    "ilsp/Llama-Krikri-8B-Instruct": "Greece",
+    "ilsp/Meltemi-7B-Instruct-v1.5": "Greece",
+    "sarvamai/OpenHathi-7B-Hi-v0.1-Base": "India",
+    "krutrim-ai-labs/Krutrim-1-instruct": "India",
+    "aisingapore/Llama-SEA-LION-v3-8B": "Southeast Asian",
+    "aisingapore/Llama-SEA-LION-v3-8B-IT": "Southeast Asian",
+    "SeaLLMs/SeaLLM-7B-v2.5": "Southeast Asian",
+    "SeaLLMs/SeaLLMs-v3-7B": "Southeast Asian",
+    "SeaLLMs/SeaLLMs-v3-7B-Chat": "Southeast Asian",
+    "naver-hyperclovax/HyperCLOVAX-SEED-Omni-8B": "South Korea",
+    "beomi/Llama-3-Open-Ko-8B": "South Korea",
+    "EleutherAI/polyglot-ko-12.8b": "South Korea",
+    "EleutherAI/polyglot-ko-5.8b": "South Korea",
+    "CohereLabs/aya-expanse-8b": "Multilingual",
+}
+
+GAP_LANGUAGES = ["chinese", "arabic", "greek", "hindi", "indonesian", "korean"]
+
+ALL_METRICS = ["accuracy", "abstain_rate", "conf_err_rate", "cond_acc"]
