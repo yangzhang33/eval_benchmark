@@ -1,6 +1,6 @@
 /data
-/results
-!results/*.py
-!results/*.ipynb
+/results/*
+!/results/*.py
+!/results/*.ipynb
 __pycache__/
 *.pyc
