@@ -1,0 +1,15 @@
+# Model inference
+# torch
+transformers
+
+# Datasets & Hugging Face
+datasets
+huggingface_hub
+
+# AWS (translation & labeling)
+boto3
+botocore
+
+# Utilities
+pandas
+tqdm

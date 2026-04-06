@@ -21,14 +21,18 @@ from util.results_pipeline import add_hall_gaps, collect, compute_gaps, filter_l
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Folder containing *_accuracy.json files
-RESULTS_DIR = os.path.join(SCRIPT_DIR, "results", "lite_eval_loglik_v1_5")
+RESULTS_DIR = os.path.join(SCRIPT_DIR, "results", "cs_filtered_lite_eval_loglik_v1_5")
 
 # Folder to write output CSVs into (will be created if it doesn't exist)
 OUTPUT_DIR = os.path.join(RESULTS_DIR, "all_results")
 
+# Folder containing *_accuracy.json files with only _ca keys.
+# Set to None if _ca data is already included in RESULTS_DIR files.
+CA_DIR = os.path.join(SCRIPT_DIR, "results", "lite_eval_loglik_v1_5", "ca_results")
+
 # Metric(s) to extract — any subset of:
 #   "accuracy", "abstain_rate", "conf_err_rate", "cond_acc"
-METRICS = ["accuracy", "abstain_rate", "conf_err_rate"]
+METRICS = ["accuracy", "abstain_rate", "conf_err_rate", "cond_acc"]
 
 # Drop rows where every subset score is below this value (applied per metric)
 FILTER_THRESHOLD = 0.25
@@ -52,7 +56,7 @@ def main():
         print(f"\n--- {metric} ---")
 
         # 1. Collect
-        df = collect(RESULTS_DIR, metric)
+        df = collect(RESULTS_DIR, metric, ca_dir=CA_DIR if os.path.isdir(CA_DIR or "") else None)
         print(f"  collected {len(df)} models, {len(df.columns) - 2} subsets")
 
         # 2. Reorder

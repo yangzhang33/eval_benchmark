@@ -7,11 +7,23 @@ import pandas as pd
 from util.results_constants import GAP_LANGUAGES, MODEL_COUNTRY, MODELS, SUBSETS
 
 
-def collect(results_dir: str, metric: str) -> pd.DataFrame:
-    """Read all *_accuracy.json files and extract `metric` into a DataFrame."""
+def collect(results_dir: str, metric: str, ca_dir: str | None = None) -> pd.DataFrame:
+    """Read all *_accuracy.json files and extract `metric` into a DataFrame.
+
+    If `ca_dir` is given, _ca keys are loaded from that directory and merged
+    with the values from `results_dir` (ca_dir takes precedence for _ca keys).
+    """
     json_files = sorted(glob.glob(os.path.join(results_dir, "*_accuracy.json")))
     if not json_files:
         raise FileNotFoundError(f"No *_accuracy.json files found in {results_dir}")
+
+    # Pre-load ca_dir files keyed by filename for quick lookup
+    ca_data: dict[str, dict] = {}
+    if ca_dir:
+        for filepath in glob.glob(os.path.join(ca_dir, "*_accuracy.json")):
+            with open(filepath) as f:
+                d = json.load(f)
+            ca_data[os.path.basename(filepath)] = d.get(metric, {})
 
     rows = []
     all_keys: list[str] = []
@@ -19,7 +31,10 @@ def collect(results_dir: str, metric: str) -> pd.DataFrame:
         with open(filepath) as f:
             data = json.load(f)
         model = data["model"]
-        values = data.get(metric, {})
+        values = dict(data.get(metric, {}))
+        # Merge _ca keys from ca_dir if available
+        ca_values = ca_data.get(os.path.basename(filepath), {})
+        values.update(ca_values)
         for k in values:
             if k not in all_keys:
                 all_keys.append(k)
@@ -32,7 +47,7 @@ def collect(results_dir: str, metric: str) -> pd.DataFrame:
     for model, values in rows:
         rec = {"model": model, "country": MODEL_COUNTRY.get(model, "Unknown")}
         for k in ordered_keys:
-            rec[k] = values.get(k, "")
+            rec[k] = values.get(k, None)
         records.append(rec)
 
     return pd.DataFrame(records)

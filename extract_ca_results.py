@@ -7,8 +7,8 @@ import json
 import os
 from pathlib import Path
 
-SRC_DIR = Path("/datalake/datastore1/yang/eval_benchmark/results/lite_eval_loglik_v1")
-OUT_DIR = Path("/datalake/datastore1/yang/eval_benchmark/results/ca_results")
+SRC_DIR = Path("results/lite_eval_loglik_v1_5")
+OUT_DIR = SRC_DIR / "ca_results"
 
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -21,13 +21,19 @@ for path in accuracy_files:
     with open(path) as f:
         data = json.load(f)
 
-    ca_accuracy = {k: v for k, v in data["accuracy"].items() if k.endswith("_ca")}
+    out = {"model": data["model"]}
+    for metric, values in data.items():
+        if metric == "model":
+            continue
+        if isinstance(values, dict):
+            ca_values = {k: v for k, v in values.items() if k.endswith("_ca")}
+            if ca_values:
+                out[metric] = ca_values
+                print(f"  [{metric}] {path.name} -> {len(ca_values)} _ca keys")
 
-    out = {"model": data["model"], "accuracy": ca_accuracy}
     out_path = OUT_DIR / path.name
     with open(out_path, "w") as f:
         json.dump(out, f, indent=2)
-    print(f"  [accuracy] {path.name} -> {len(ca_accuracy)} _ca keys")
 
 for path in prediction_files:
     with open(path) as f:
