@@ -4,63 +4,113 @@ import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.colors import LinearSegmentedColormap
-import matplotlib.patheffects as pe
 
 # ── Data ──────────────────────────────────────────────────────────────────────
 
-CSV_PATH = "accuracy_gaps_-_accuracy_gaps.csv"   # change if needed
+CSV_PATH = "cs_filtered_lite_eval_loglik_v1/all_results/accuracy_gaps.csv"
 
-LOCALE_COLS = {
-    "chinese_knowledge_gap":   "ZH",
-    "arabic_knowledge_gap":    "AR",
-    "greek_knowledge_gap":     "EL",
-    "hindi_knowledge_gap":     "HI",
-    "indonesian_knowledge_gap":"ID",
-    "korean_knowledge_gap":    "KO",
-}
+LOCALES = ["ZH", "AR", "EL", "HI", "ID", "KO"]
+LANG_PREFIXES = ["chinese", "arabic", "greek", "hindi", "indonesian", "korean"]
+
+# Three panels: global_gap, local_gap, knowledge_gap
+PANELS = [
+    dict(
+        col_suffix  = "global_gap",
+        title       = "Global Gap",
+        subtitle    = "local-lang − English  ·  global (non-locale-specific) questions",
+        vmin        = -0.30,
+        vmax        =  0.05,
+        cbar_label  = "Global Gap",
+    ),
+    dict(
+        col_suffix  = "local_gap",
+        title       = "Local Gap",
+        subtitle    = "local-lang − English  ·  locale-specific questions",
+        vmin        = -0.20,
+        vmax        =  0.15,
+        cbar_label  = "Local Gap",
+    ),
+    dict(
+        col_suffix  = "knowledge_gap",
+        title       = "Knowledge Gap",
+        subtitle    = "LocalGap − GlobalGap  ·  local-language query advantage",
+        vmin        = -0.10,
+        vmax        =  0.40,
+        cbar_label  = "Knowledge Gap",
+    ),
+]
 
 SHORT_NAMES = {
-    "meta-llama/Meta-Llama-3.1-8B":            "Llama-3.1-8B",
-    "google/gemma-2-9b":                        "Gemma-2-9B",
-    "Qwen/Qwen2.5-7B":                          "Qwen2.5-7B",
-    "deepseek-ai/deepseek-llm-7b-base":         "DeepSeek-7B",
-    "inceptionai/Jais-2-8B-Chat":               "Jais-2-8B",
-    "FreedomIntelligence/AceGPT-v2-8B-Chat":    "AceGPT-v2-8B",
-    "mistralai/Ministral-3-8B-Base-2512":       "Ministral-3B",
-    "ilsp/Llama-Krikri-8B-Instruct":            "Krikri-8B",
-    "ilsp/Meltemi-7B-Instruct-v1.5":            "Meltemi-7B",
-    "sarvamai/OpenHathi-7B-Hi-v0.1-Base":       "OpenHathi-7B",
-    "aisingapore/Llama-SEA-LION-v3-8B":         "SEA-LION-8B",
-    "aisingapore/Llama-SEA-LION-v3-8B-IT":      "SEA-LION-IT",
-    "SeaLLMs/SeaLLM-7B-v2.5":                  "SeaLLM-7B",
-    "SeaLLMs/SeaLLMs-v3-7B":                   "SeaLLMs-v3",
-    "SeaLLMs/SeaLLMs-v3-7B-Chat":              "SeaLLMs-Chat",
-    "beomi/Llama-3-Open-Ko-8B":                 "Ko-Llama-8B",
-    "EleutherAI/polyglot-ko-12.8b":             "Polyglot-Ko",
-    "CohereLabs/aya-expanse-8b":                "Aya-Expanse",
+    # english models
+    "meta-llama/Meta-Llama-3.1-8B":                    "Llama-3.1-8B",
+    "meta-llama/Llama-3.1-8B-Instruct":                "Llama-3.1-8B-IT",
+    "google/gemma-2-9b":                                "Gemma-2-9B",
+    "google/gemma-2-9b-it":                             "Gemma-2-9B-IT",
+    "google/gemma-2-27b":                               "Gemma-2-27B",
+    "google/gemma-2-27b-it":                            "Gemma-2-27B-IT",
+    "google/gemma-3-12b-pt":                            "Gemma-3-12B",
+    "google/gemma-3-12b-it":                            "Gemma-3-12B-IT",
+    "google/gemma-3-27b-pt":                            "Gemma-3-27B",
+    "google/gemma-3-27b-it":                            "Gemma-3-27B-IT",
+    # chinese models
+    "Qwen/Qwen2.5-7B":                                  "Qwen2.5-7B",
+    "Qwen/Qwen2.5-7B-Instruct":                         "Qwen2.5-7B-IT",
+    "Qwen/Qwen2.5-14B":                                 "Qwen2.5-14B",
+    "Qwen/Qwen2.5-14B-Instruct":                        "Qwen2.5-14B-IT",
+    "Qwen/Qwen2.5-32B":                                 "Qwen2.5-32B",
+    "Qwen/Qwen2.5-32B-Instruct":                        "Qwen2.5-32B-IT",
+    "deepseek-ai/deepseek-llm-7b-base":                 "DeepSeek-7B",
+    "deepseek-ai/deepseek-llm-7b-chat":                 "DeepSeek-7B-Chat",
+    # arabic models
+    "inceptionai/jais-13b":                             "Jais-13B",
+    "inceptionai/jais-13b-chat":                        "Jais-13B-Chat",
+    "inceptionai/Jais-2-8B-Chat":                       "Jais-2-8B",
+    "FreedomIntelligence/AceGPT-v2-8B":                 "AceGPT-v2-8B",
+    "FreedomIntelligence/AceGPT-v2-8B-Chat":            "AceGPT-v2-8B-Chat",
+    # mistral models
+    "mistralai/Ministral-3-8B-Base-2512":               "Ministral-3B",
+    "mistralai/Ministral-3-8B-Instruct-2512":           "Ministral-3B-IT",
+    # greek models
+    "ilsp/Llama-Krikri-8B-Instruct":                    "Krikri-8B",
+    "ilsp/Meltemi-7B-Instruct-v1.5":                    "Meltemi-7B",
+    # hindi models
+    "sarvamai/OpenHathi-7B-Hi-v0.1-Base":               "OpenHathi-7B",
+    "krutrim-ai-labs/Krutrim-1-instruct":               "Krutrim-1",
+    # southeast asian models
+    "aisingapore/Llama-SEA-LION-v3-8B":                 "SEA-LION-8B",
+    "aisingapore/Llama-SEA-LION-v3-8B-IT":              "SEA-LION-IT",
+    "SeaLLMs/SeaLLM-7B-v2.5":                          "SeaLLM-7B",
+    "SeaLLMs/SeaLLMs-v3-7B":                           "SeaLLMs-v3",
+    "SeaLLMs/SeaLLMs-v3-7B-Chat":                      "SeaLLMs-Chat",
+    # korean models
+    "naver-hyperclovax/HyperCLOVAX-SEED-Omni-8B":       "HyperCLOVA-8B",
+    "beomi/Llama-3-Open-Ko-8B":                         "Ko-Llama-8B",
+    "EleutherAI/polyglot-ko-12.8b":                     "Polyglot-Ko-12B",
+    "EleutherAI/polyglot-ko-5.8b":                      "Polyglot-Ko-5B",
+    # multilingual models
+    "CohereLabs/aya-expanse-8b":                        "Aya-Expanse",
 }
 
-# Country → home locale column
-HOME_LOCALE = {
-    "China":     "chinese_knowledge_gap",
-    "UAE":       "arabic_knowledge_gap",
-    "Greece":    "greek_knowledge_gap",
-    "India":     "hindi_knowledge_gap",
-    "SE Asia":   "indonesian_knowledge_gap",
-    "S. Korea":  "korean_knowledge_gap",
+# Country → home locale label (shared across all three panels)
+HOME_LOCALE_LABEL = {
+    "China":           "ZH",
+    "UAE":             "AR",
+    "Greece":          "EL",
+    "India":           "HI",
+    "Southeast Asian": "ID",
+    "South Korea":     "KO",
 }
 
-# Country display colors
 COUNTRY_COLORS = {
-    "USA":          "#378ADD",
-    "China":        "#D85A30",
-    "UAE":          "#BA7517",
-    "France":       "#7F77DD",
-    "Greece":       "#1D9E75",
-    "India":        "#639922",
-    "SE Asia":      "#5DCAA5",
-    "S. Korea":     "#D4537E",
-    "Multilingual": "#888780",
+    "USA":             "#378ADD",
+    "China":           "#D85A30",
+    "UAE":             "#BA7517",
+    "France":          "#7F77DD",
+    "Greece":          "#1D9E75",
+    "India":           "#639922",
+    "Southeast Asian": "#5DCAA5",
+    "South Korea":     "#D4537E",
+    "Multilingual":    "#888780",
 }
 
 # ── Load & reshape ─────────────────────────────────────────────────────────────
@@ -68,114 +118,115 @@ COUNTRY_COLORS = {
 df = pd.read_csv(CSV_PATH)
 df["short"] = df["model"].map(SHORT_NAMES).fillna(df["model"])
 
-kg_df = df[["short", "country"] + list(LOCALE_COLS.keys())].copy()
-kg_df = kg_df.rename(columns=LOCALE_COLS)
-locale_labels = list(LOCALE_COLS.values())
+model_labels = df["short"].tolist()
+countries    = df["country"].tolist()
+n_models     = len(model_labels)
+n_locales    = len(LOCALES)
 
-# Matrix: rows = models, cols = locales
-matrix = kg_df[locale_labels].values          # shape (18, 6)
-model_labels = kg_df["short"].tolist()
-countries    = kg_df["country"].tolist()
+# Build matrix for each panel
+def build_matrix(panel):
+    cols = [f"{lang}_{panel['col_suffix']}" for lang in LANG_PREFIXES]
+    return df[cols].values
 
-# ── Colormap: red → white → blue ──────────────────────────────────────────────
+# ── Colormap ──────────────────────────────────────────────────────────────────
 
 cmap = LinearSegmentedColormap.from_list(
-    "rwb",
-    ["#D85A30", "#FFFFFF", "#185FA5"],
-    N=512
+    "rwb", ["#D85A30", "#FFFFFF", "#185FA5"], N=512
 )
-VMIN, VMAX = -0.10, 0.40
 
-# ── Figure ────────────────────────────────────────────────────────────────────
+# ── Figure: 1 row × 3 columns ─────────────────────────────────────────────────
 
-n_models  = len(model_labels)
-n_locales = len(locale_labels)
-
-fig, ax = plt.subplots(figsize=(9, 0.55 * n_models + 2.2))
+fig, axes = plt.subplots(
+    1, 3,
+    figsize=(32, 0.40 * n_models + 2.8),
+    gridspec_kw={"wspace": 0.06},
+)
 fig.patch.set_facecolor("white")
 
-im = ax.imshow(matrix, cmap=cmap, vmin=VMIN, vmax=VMAX, aspect="auto")
+for p_idx, (ax, panel) in enumerate(zip(axes, PANELS)):
+    matrix = build_matrix(panel)
+    vmin, vmax = panel["vmin"], panel["vmax"]
 
-# ── Cell annotations ──────────────────────────────────────────────────────────
+    im = ax.imshow(matrix, cmap=cmap, vmin=vmin, vmax=vmax, aspect="auto")
 
-for r, (model, country) in enumerate(zip(model_labels, countries)):
-    home_col = HOME_LOCALE.get(country)
-    home_locale_label = LOCALE_COLS.get(home_col) if home_col else None
+    # ── Cell annotations ──────────────────────────────────────────────────────
+    for r, (model, country) in enumerate(zip(model_labels, countries)):
+        home_label = HOME_LOCALE_LABEL.get(country)
+        for c, loc in enumerate(LOCALES):
+            v = matrix[r, c]
+            is_home = (loc == home_label)
 
-    for c, loc in enumerate(locale_labels):
-        v = matrix[r, c]
-        is_home = (loc == home_locale_label)
+            norm_v = (v - vmin) / (vmax - vmin)
+            text_color = "white" if (norm_v > 0.72 or norm_v < 0.18) else "#222"
 
-        # Text color: white on dark cells, dark on light cells
-        norm_v = (v - VMIN) / (VMAX - VMIN)
-        text_color = "white" if (norm_v > 0.72 or norm_v < 0.18) else "#222"
+            label = f"★{v:.2f}" if is_home else f"{v:.2f}"
+            ax.text(c, r, label, ha="center", va="center",
+                    fontsize=7, fontweight="bold" if is_home else "normal",
+                    color=text_color)
 
-        label = f"★{v:.2f}" if is_home else f"{v:.2f}"
-        txt = ax.text(c, r, label, ha="center", va="center",
-                      fontsize=8.5, fontweight="bold" if is_home else "normal",
-                      color=text_color)
+            if is_home:
+                border_color = COUNTRY_COLORS.get(country, "#333")
+                rect = mpatches.FancyBboxPatch(
+                    (c - 0.48, r - 0.46), 0.96, 0.92,
+                    boxstyle="round,pad=0.02",
+                    linewidth=2.0,
+                    edgecolor=border_color,
+                    facecolor="none",
+                    transform=ax.transData,
+                    zorder=3,
+                )
+                ax.add_patch(rect)
 
-        # Highlight home cell with a colored border rectangle
-        if is_home:
-            border_color = COUNTRY_COLORS.get(country, "#333")
-            rect = mpatches.FancyBboxPatch(
-                (c - 0.48, r - 0.46), 0.96, 0.92,
-                boxstyle="round,pad=0.02",
-                linewidth=2.0,
-                edgecolor=border_color,
-                facecolor="none",
-                transform=ax.transData,
-                zorder=3,
+    # ── Axes ticks ────────────────────────────────────────────────────────────
+    ax.set_xticks(range(n_locales))
+    ax.set_xticklabels(LOCALES, fontsize=10, fontweight="bold")
+    ax.xaxis.set_ticks_position("top")
+    ax.xaxis.set_label_position("top")
+
+    if p_idx == 0:
+        # Model labels + colored squares only on the leftmost panel
+        ax.set_yticks(range(n_models))
+        ax.set_yticklabels(model_labels, fontsize=8)
+        for r, (label, country) in enumerate(zip(model_labels, countries)):
+            color = COUNTRY_COLORS.get(country, "#888")
+            ax.get_yticklabels()[r].set_color("#222")
+            ax.annotate(
+                "■",
+                xy=(0, r), xytext=(-0.72, r),
+                xycoords=("axes fraction", "data"),
+                textcoords=("axes fraction", "data"),
+                ha="right", va="center",
+                fontsize=8, color=color,
+                annotation_clip=False,
             )
-            ax.add_patch(rect)
+    else:
+        ax.set_yticks([])
 
-# ── Axes labels ───────────────────────────────────────────────────────────────
+    ax.tick_params(left=False, top=False)
+    for spine in ax.spines.values():
+        spine.set_visible(False)
 
-ax.set_xticks(range(n_locales))
-ax.set_xticklabels(locale_labels, fontsize=11, fontweight="bold")
-ax.xaxis.set_ticks_position("top")
-ax.xaxis.set_label_position("top")
+    # ── Per-panel colorbar ────────────────────────────────────────────────────
+    cbar = fig.colorbar(im, ax=ax, orientation="horizontal",
+                        fraction=0.03, pad=0.18, aspect=40)
+    cbar.set_label(panel["cbar_label"], fontsize=9)
+    cbar.ax.tick_params(labelsize=8)
+    cbar.outline.set_visible(False)
 
-ax.set_yticks(range(n_models))
-ax.set_yticklabels(model_labels, fontsize=9.5)
-
-# Colored country dot before each model label
-for r, (label, country) in enumerate(zip(model_labels, countries)):
-    color = COUNTRY_COLORS.get(country, "#888")
-    ax.get_yticklabels()[r].set_color("#222")
-    # Draw a colored square to the left of the tick labels
-    ax.annotate(
-        "■",
-        xy=(0, r),
-        xytext=(-0.85, r),
-        xycoords=("axes fraction", "data"),
-        textcoords=("axes fraction", "data"),
-        ha="right", va="center",
-        fontsize=10,
-        color=color,
-        annotation_clip=False,
+    # ── Panel title ───────────────────────────────────────────────────────────
+    ax.set_title(
+        f"{panel['title']}\n{panel['subtitle']}",
+        fontsize=9.5, pad=14, loc="left", color="#333",
     )
 
-ax.tick_params(left=False, top=False)
-for spine in ax.spines.values():
-    spine.set_visible(False)
+# ── Country legend (right of last panel) ──────────────────────────────────────
 
-# ── Colorbar ──────────────────────────────────────────────────────────────────
-
-cbar = fig.colorbar(im, ax=ax, orientation="horizontal",
-                    fraction=0.03, pad=0.18, aspect=40)
-cbar.set_label("KnowledgeGap  (LocalGap − GlobalGap)", fontsize=9)
-cbar.ax.tick_params(labelsize=8)
-cbar.outline.set_visible(False)
-
-# ── Country legend ────────────────────────────────────────────────────────────
-
-unique_countries = list(dict.fromkeys(countries))   # preserve order
+unique_countries = list(dict.fromkeys(countries))
 legend_handles = [
     mpatches.Patch(color=COUNTRY_COLORS.get(c, "#888"), label=c)
     for c in unique_countries
 ]
-ax.legend(
+axes[-1].legend(
     handles=legend_handles,
     title="Model origin",
     title_fontsize=8,
@@ -187,16 +238,9 @@ ax.legend(
     handleheight=1.2,
 )
 
-# ── Title & note ──────────────────────────────────────────────────────────────
+# ── Save ──────────────────────────────────────────────────────────────────────
 
-ax.set_title(
-    "Knowledge Gap Heatmap  —  local-language query advantage per locale\n"
-    "★ marks each model's home locale  ·  blue = local language helps  ·  red = English outperforms",
-    fontsize=9.5, pad=14, loc="left", color="#333"
-)
-
-plt.tight_layout()
-plt.savefig("knowledge_gap_heatmap.pdf", bbox_inches="tight", dpi=150)
-plt.savefig("knowledge_gap_heatmap.png", bbox_inches="tight", dpi=150)
-print("Saved: knowledge_gap_heatmap.pdf  and  knowledge_gap_heatmap.png")
+plt.savefig("gap_heatmaps.pdf", bbox_inches="tight", dpi=150)
+plt.savefig("gap_heatmaps.png", bbox_inches="tight", dpi=150)
+print("Saved: gap_heatmaps.pdf  and  gap_heatmaps.png")
 plt.show()
