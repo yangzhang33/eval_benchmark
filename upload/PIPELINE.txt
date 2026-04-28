@@ -1,0 +1,54 @@
+Data Addition Pipeline
+======================
+
+For each new language, run the following scripts in order.
+Before each script, update the CONFIGS list at the top to include only the new language.
+
+Datasets overview:
+  culture-eval-benchmark              — raw data (CS + CA configs)
+  culture-eval-benchmark-labeled      — raw data + claude_cs label
+  culture-eval-benchmark-cs-filtered  — filtered to claude_cs==1 (CS) or full (CA)
+  culture-eval-benchmark-cs-filtered-lite — sampled version (CS capped at 1000) + translated (_en)
+
+
+Step 1: upload_benchmark_xx.py  (e.g. upload_benchmark_italic.py)
+  - Uploads new language CS questions to culture-eval-benchmark ({lang}_cs config)
+  - Also run upload_benchmark_ca.py to upload CA questions ({lang}_ca config)
+  - Target: culture-eval-benchmark
+
+Step 2: add_ceb_fields.py
+  - Adds CEB_index (integer index within config) and CEB_config (config name) to each row
+  - Must run BEFORE label_cs.py so the labeled dataset inherits these fields automatically
+  - Configure: set CONFIGS to include both {lang}_cs and {lang}_ca
+  - Target: culture-eval-benchmark (overwrites same config in-place)
+
+Step 3: label_cs.py
+  - Uses Claude (via AWS Bedrock) to classify each question as culturally dependent (1) or not (0)
+  - Adds claude_cs column; saves progress locally to {config}_labeled.jsonl (resumable)
+  - Only applies to _cs configs (not _ca)
+  - Configure: set CONFIGS to include the new _cs config
+  - Target: culture-eval-benchmark-labeled
+
+  Note: if label_cs.py was accidentally run before add_ceb_fields.py,
+  run patch_labeled_ceb_fields.py to retroactively add CEB fields to the labeled dataset
+  by matching on the question field.
+
+Step 4: filter_cs_labeled.py
+  - CS configs: filters labeled data to keep only claude_cs==1 rows
+  - CA configs: uploads raw data as-is (no filtering needed)
+  - Configure: uncomment {lang}_cs in LABELED_CONFIGS and {lang}_ca in RAW_CONFIGS
+  - Target: culture-eval-benchmark-cs-filtered
+
+Step 5: upload_lite.py
+  - CS configs: samples up to 1000 examples proportionally by CEB_config
+  - CA configs: uploads full data as-is
+  - Configure: uncomment {lang}_cs in CS_CONFIGS and {lang}_ca in CA_CONFIGS
+  - Target: culture-eval-benchmark-cs-filtered-lite
+
+Step 6: translate_cs.py
+  - Translates question and options (A-D) from source language to English using Claude
+  - Saves progress locally to {config}_en.jsonl (resumable)
+  - Uploads result as a new config named {lang}_cs_en
+  - Only applies to _cs configs
+  - Configure: uncomment the new language tuple in CONFIGS
+  - Target: culture-eval-benchmark-cs-filtered-lite

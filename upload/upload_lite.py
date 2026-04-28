@@ -1,6 +1,6 @@
 
 from collections import Counter
-from datasets import load_dataset, DatasetDict, concatenate_datasets, get_dataset_config_names
+from datasets import load_dataset, DatasetDict, concatenate_datasets
 from huggingface_hub import HfApi
 
 HF_REPO_ID = "yangzhang33/culture-eval-benchmark-cs-filtered"
@@ -9,12 +9,24 @@ MAX_SAMPLES = 1000
 SEED = 42
 
 CS_CONFIGS = [
-    "chinese_cs",
-    "arabic_cs",
-    "greek_cs",
-    "hindi_cs",
-    "indonesian_cs",
-    "korean_cs",
+    # "chinese_cs",
+    # "arabic_cs",
+    # "greek_cs",
+    # "hindi_cs",
+    # "indonesian_cs",
+    # "korean_cs",
+    "italic_cs",
+]
+
+CA_CONFIGS = [
+    # "arabic_ca",
+    # "chinese_ca",
+    # "english_ca",
+    # "greek_ca",
+    # "hindi_ca",
+    # "indonesian_ca",
+    # "korean_ca",
+    "italic_ca",
 ]
 
 
@@ -23,11 +35,11 @@ def sample_proportionally(data, max_samples, seed=SEED):
     if total <= max_samples:
         return data
 
-    counts = Counter(data["config"])
+    counts = Counter(data["CEB_config"])
     parts = []
     for config_val, count in counts.items():
         quota = max(1, round(count / total * max_samples))
-        subset = data.filter(lambda x, v=config_val: x["config"] == v)
+        subset = data.filter(lambda x, v=config_val: x["CEB_config"] == v)
         subset = subset.shuffle(seed=seed).select(range(min(quota, len(subset))))
         parts.append(subset)
     return concatenate_datasets(parts)
@@ -39,13 +51,13 @@ lite_configs = {}
 for lang in CS_CONFIGS:
     print(f"\n=== {lang} ===")
     data = load_dataset(HF_REPO_ID, lang)["test"]
-    counts = Counter(data["config"])
+    counts = Counter(data["CEB_config"])
     print(f"Total: {len(data)}")
     for config_val, count in sorted(counts.items()):
         print(f"  {config_val}: {count}")
 
     sampled = sample_proportionally(data, MAX_SAMPLES)
-    sampled_counts = Counter(sampled["config"])
+    sampled_counts = Counter(sampled["CEB_config"])
     print(f"After sampling: {len(sampled)}")
     for config_val, count in sorted(sampled_counts.items()):
         print(f"  {config_val}: {count}")
@@ -53,9 +65,8 @@ for lang in CS_CONFIGS:
     lite_configs[lang] = sampled
 
 # _ca configs — full data, uploaded as-is
-all_configs = get_dataset_config_names(HF_REPO_ID)
-ca_configs = [c for c in all_configs if c.endswith("_ca")]
-print(f"\nFound {len(ca_configs)} _ca configs: {ca_configs}")
+ca_configs = CA_CONFIGS
+print(f"\nProcessing {len(ca_configs)} _ca configs: {ca_configs}")
 
 for config_name in ca_configs:
     print(f"\n=== {config_name} ===")

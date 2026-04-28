@@ -3,11 +3,13 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
+from matplotlib.cm import ScalarMappable
+from pathlib import Path
 
 # ── Data ──────────────────────────────────────────────────────────────────────
 
-CSV_PATH = "cs_filtered_lite_eval_loglik_v1/all_results/accuracy_gaps.csv"
+CSV_PATH = Path("cs_filtered_lite_eval_loglik_v1/all_results/accuracy_gaps.csv")
 
 LOCALES = ["ZH", "AR", "EL", "HI", "ID", "KO"]
 LANG_PREFIXES = ["chinese", "arabic", "greek", "hindi", "indonesian", "korean"]
@@ -15,28 +17,19 @@ LANG_PREFIXES = ["chinese", "arabic", "greek", "hindi", "indonesian", "korean"]
 # Three panels: global_gap, local_gap, knowledge_gap
 PANELS = [
     dict(
-        col_suffix  = "global_gap",
-        title       = "Global Gap",
-        subtitle    = "local-lang − English  ·  global (non-locale-specific) questions",
-        vmin        = -0.30,
-        vmax        =  0.05,
-        cbar_label  = "Global Gap",
+        col_suffix = "global_gap",
+        title      = "Global Gap",
+        subtitle   = "local-lang − English  ·  global (non-locale-specific) questions",
     ),
     dict(
-        col_suffix  = "local_gap",
-        title       = "Local Gap",
-        subtitle    = "local-lang − English  ·  locale-specific questions",
-        vmin        = -0.20,
-        vmax        =  0.15,
-        cbar_label  = "Local Gap",
+        col_suffix = "local_gap",
+        title      = "Local Gap",
+        subtitle   = "local-lang − English  ·  locale-specific questions",
     ),
     dict(
-        col_suffix  = "knowledge_gap",
-        title       = "Knowledge Gap",
-        subtitle    = "LocalGap − GlobalGap  ·  local-language query advantage",
-        vmin        = -0.10,
-        vmax        =  0.40,
-        cbar_label  = "Knowledge Gap",
+        col_suffix = "knowledge_gap",
+        title      = "Knowledge Gap",
+        subtitle   = "LocalGap − GlobalGap  ·  local-language query advantage",
     ),
 ]
 
@@ -134,20 +127,28 @@ cmap = LinearSegmentedColormap.from_list(
     "rwb", ["#D85A30", "#FFFFFF", "#185FA5"], N=512
 )
 
+# ── Unified norm centered at 0 ────────────────────────────────────────────────
+
+matrices = [build_matrix(panel) for panel in PANELS]
+all_values = np.concatenate([m.flatten() for m in matrices])
+all_values = all_values[~np.isnan(all_values)]
+global_vmin = float(np.min(all_values))
+global_vmax = float(np.max(all_values))
+norm = TwoSlopeNorm(vmin=global_vmin, vcenter=0.0, vmax=global_vmax)
+
 # ── Figure: 1 row × 3 columns ─────────────────────────────────────────────────
 
 fig, axes = plt.subplots(
     1, 3,
     figsize=(32, 0.40 * n_models + 2.8),
-    gridspec_kw={"wspace": 0.06},
+    gridspec_kw={"wspace": 0.35},
 )
 fig.patch.set_facecolor("white")
 
 for p_idx, (ax, panel) in enumerate(zip(axes, PANELS)):
-    matrix = build_matrix(panel)
-    vmin, vmax = panel["vmin"], panel["vmax"]
+    matrix = matrices[p_idx]
 
-    im = ax.imshow(matrix, cmap=cmap, vmin=vmin, vmax=vmax, aspect="auto")
+    im = ax.imshow(matrix, cmap=cmap, norm=norm, aspect="auto")
 
     # ── Cell annotations ──────────────────────────────────────────────────────
     for r, (model, country) in enumerate(zip(model_labels, countries)):
@@ -156,7 +157,7 @@ for p_idx, (ax, panel) in enumerate(zip(axes, PANELS)):
             v = matrix[r, c]
             is_home = (loc == home_label)
 
-            norm_v = (v - vmin) / (vmax - vmin)
+            norm_v = float(norm(v))
             text_color = "white" if (norm_v > 0.72 or norm_v < 0.18) else "#222"
 
             label = f"★{v:.2f}" if is_home else f"{v:.2f}"
@@ -183,41 +184,42 @@ for p_idx, (ax, panel) in enumerate(zip(axes, PANELS)):
     ax.xaxis.set_ticks_position("top")
     ax.xaxis.set_label_position("top")
 
-    if p_idx == 0:
-        # Model labels + colored squares only on the leftmost panel
-        ax.set_yticks(range(n_models))
-        ax.set_yticklabels(model_labels, fontsize=8)
-        for r, (label, country) in enumerate(zip(model_labels, countries)):
-            color = COUNTRY_COLORS.get(country, "#888")
-            ax.get_yticklabels()[r].set_color("#222")
-            ax.annotate(
-                "■",
-                xy=(0, r), xytext=(-0.72, r),
-                xycoords=("axes fraction", "data"),
-                textcoords=("axes fraction", "data"),
-                ha="right", va="center",
-                fontsize=8, color=color,
-                annotation_clip=False,
-            )
-    else:
-        ax.set_yticks([])
+    ax.set_yticks(range(n_models))
+    ax.set_yticklabels(model_labels, fontsize=8)
+    for r, (label, country) in enumerate(zip(model_labels, countries)):
+        color = COUNTRY_COLORS.get(country, "#888")
+        ax.get_yticklabels()[r].set_color("#222")
+        ax.annotate(
+            "■",
+            xy=(0, r), xytext=(-0.72, r),
+            xycoords=("axes fraction", "data"),
+            textcoords=("axes fraction", "data"),
+            ha="right", va="center",
+            fontsize=8, color=color,
+            annotation_clip=False,
+        )
 
     ax.tick_params(left=False, top=False)
     for spine in ax.spines.values():
         spine.set_visible(False)
 
-    # ── Per-panel colorbar ────────────────────────────────────────────────────
-    cbar = fig.colorbar(im, ax=ax, orientation="horizontal",
-                        fraction=0.03, pad=0.18, aspect=40)
-    cbar.set_label(panel["cbar_label"], fontsize=9)
-    cbar.ax.tick_params(labelsize=8)
-    cbar.outline.set_visible(False)
 
     # ── Panel title ───────────────────────────────────────────────────────────
     ax.set_title(
         f"{panel['title']}\n{panel['subtitle']}",
         fontsize=9.5, pad=14, loc="left", color="#333",
     )
+
+# ── Shared colorbar (below all panels) ───────────────────────────────────────
+
+sm = ScalarMappable(cmap=cmap, norm=norm)
+sm.set_array([])
+cbar = fig.colorbar(sm, ax=axes.tolist(), orientation="horizontal",
+                    fraction=0.02, pad=0.08, aspect=50, shrink=0.6)
+cbar.set_label("Gap  (positive = local-language advantage over English)", fontsize=9)
+cbar.ax.tick_params(labelsize=8)
+cbar.outline.set_visible(False)
+cbar.ax.axvline(0, color="#333", linewidth=1.0, linestyle="--")
 
 # ── Country legend (right of last panel) ──────────────────────────────────────
 
@@ -240,7 +242,11 @@ axes[-1].legend(
 
 # ── Save ──────────────────────────────────────────────────────────────────────
 
-plt.savefig("gap_heatmaps.pdf", bbox_inches="tight", dpi=150)
-plt.savefig("gap_heatmaps.png", bbox_inches="tight", dpi=150)
-print("Saved: gap_heatmaps.pdf  and  gap_heatmaps.png")
+output_dir = CSV_PATH.parent
+pdf_path = output_dir / "gap_heatmaps.pdf"
+png_path = output_dir / "gap_heatmaps.png"
+
+plt.savefig(pdf_path, bbox_inches="tight", dpi=150)
+plt.savefig(png_path, bbox_inches="tight", dpi=150)
+print(f"Saved: {pdf_path} and {png_path}")
 plt.show()

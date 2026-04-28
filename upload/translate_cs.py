@@ -18,12 +18,13 @@ BEDROCK_MODEL_ID = "us.anthropic.claude-sonnet-4-20250514-v1:0"
 # Configure source languages/configs here
 # ---------------------------------------------------------------------------
 CONFIGS = [
-    ("chinese_cs",    "Chinese"),
-    ("arabic_cs",     "Arabic"),
-    ("greek_cs",      "Greek"),
-    ("hindi_cs",      "Hindi"),
-    ("indonesian_cs", "Indonesian"),
-    ("korean_cs",     "Korean"),
+    # ("chinese_cs",    "Chinese"),
+    # ("arabic_cs",     "Arabic"),
+    # ("greek_cs",      "Greek"),
+    # ("hindi_cs",      "Hindi"),
+    # ("indonesian_cs", "Indonesian"),
+    # ("korean_cs",     "Korean"),
+    ("italic_cs",     "Italian"),
 ]
 
 # Set to a positive integer to limit translation to N samples (for testing); None = all

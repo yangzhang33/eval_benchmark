@@ -12,24 +12,35 @@ LABELED_REPO_ID = "yangzhang33/culture-eval-benchmark-labeled"
 RAW_REPO_ID = "yangzhang33/culture-eval-benchmark"
 DST_REPO_ID = "yangzhang33/culture-eval-benchmark-cs-filtered"
 
+LABELED_CONFIGS = [
+    # 'arabic_cs',
+    # 'chinese_cs',
+    # 'english_cs',
+    # 'greek_cs',
+    # 'hindi_cs',
+    # 'indonesian_cs',
+    'italic_cs',
+    # 'korean_cs',
+]
+
 RAW_CONFIGS = [
-    'arabic_ca',
-    'chinese_ca',
-    'english_ca',
-    'greek_ca',
-    'hindi_ca',
-    'indonesian_ca',
-    'korean_ca',
+    # 'arabic_ca',
+    # 'chinese_ca',
+    # 'english_ca',
+    # 'greek_ca',
+    # 'hindi_ca',
+    # 'indonesian_ca',
+    'italic_ca',
+    # 'korean_ca',
 ]
 
 api = HfApi()
 api.create_repo(repo_id=DST_REPO_ID, repo_type="dataset", exist_ok=True)
 
 # --- Part 1: labeled CS configs filtered to claude_cs == 1 ---
-labeled_configs = get_dataset_config_names(LABELED_REPO_ID)
-print(f"Found {len(labeled_configs)} labeled configs: {labeled_configs}")
+print(f"Processing {len(LABELED_CONFIGS)} labeled configs: {LABELED_CONFIGS}")
 
-for config_name in labeled_configs:
+for config_name in LABELED_CONFIGS:
     print(f"\n=== {config_name} (labeled) ===")
     ds = load_dataset(LABELED_REPO_ID, config_name)
 

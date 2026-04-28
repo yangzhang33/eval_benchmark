@@ -39,12 +39,13 @@ BEDROCK_MODEL_ID = "us.anthropic.claude-sonnet-4-20250514-v1:0"
 # Each entry is (config_name, language, country/region) so the classifier
 # prompt can explicitly name the culture being evaluated.
 CONFIGS = [
-    ("chinese_cs",    "Chinese",    "China"),
-    ("arabic_cs",     "Arabic",     "Arab world"),
-    ("greek_cs",      "Greek",      "Greece"),
-    ("hindi_cs",      "Hindi",      "India"),
-    ("indonesian_cs", "Indonesian", "Indonesia"),
-    ("korean_cs",     "Korean",     "Korea"),
+    # ("chinese_cs",    "Chinese",    "China"),
+    # ("arabic_cs",     "Arabic",     "Arab world"),
+    # ("greek_cs",      "Greek",      "Greece"),
+    # ("hindi_cs",      "Hindi",      "India"),
+    # ("indonesian_cs", "Indonesian", "Indonesia"),
+    # ("korean_cs",     "Korean",     "Korea"),
+    ("italic_cs",     "Italian",    "Italy"),
 ]
 
 # Set to a positive integer to process only the first N samples (for testing).

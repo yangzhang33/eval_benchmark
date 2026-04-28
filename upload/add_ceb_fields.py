@@ -9,8 +9,17 @@ from datasets import load_dataset, DatasetDict, get_dataset_config_names
 
 HF_REPO_ID = "yangzhang33/culture-eval-benchmark"
 
-configs = get_dataset_config_names(HF_REPO_ID)
-print(f"Found {len(configs)} configs: {configs}")
+configs = [
+    # "arabic_ca", "arabic_cs",
+    # "chinese_ca", "chinese_cs",
+    # "english_ca",
+    # "greek_ca", "greek_cs",
+    # "hindi_ca", "hindi_cs",
+    # "indonesian_ca", "indonesian_cs",
+    # "korean_ca", "korean_cs",
+    "italic_ca", "italic_cs",
+]
+print(f"Processing {len(configs)} configs: {configs}")
 
 for config_name in configs:
     print(f"\n=== {config_name} ===")
@@ -25,7 +34,7 @@ for config_name in configs:
         new_splits[split_name] = split_data
         print(f"  {split_name}: {len(split_data)} examples")
 
-    # DatasetDict(new_splits).push_to_hub(HF_REPO_ID, config_name=config_name)
+    DatasetDict(new_splits).push_to_hub(HF_REPO_ID, config_name=config_name)
     print(f"  Uploaded {config_name}")
 
 print(f"\nDone! Dataset available at: https://huggingface.co/datasets/{HF_REPO_ID}")
