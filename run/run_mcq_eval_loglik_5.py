@@ -11,9 +11,9 @@ Usage:
   python run_mcq_eval_loglik_5.py --outdir results
   python run_mcq_eval_loglik_5.py --models Qwen/Qwen2.5-7B --outdir results
 """
-import argparse
+import inspect
 import json
-import os
+import gc
 from pathlib import Path
 
 import torch
@@ -22,32 +22,49 @@ from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM, Mistral3ForConditionalGeneration, MistralCommonBackend
 
 DATASET = "yangzhang33/culture-eval-benchmark-cs-filtered-lite"
-SUBSETS = [
-    "chinese_cs", "chinese_cs_en",
-    "arabic_cs", "arabic_cs_en",
-    "greek_cs", "greek_cs_en",
-    "hindi_cs", "hindi_cs_en",
-    "indonesian_cs", "indonesian_cs_en",
-    "korean_cs", "korean_cs_en",
+CA_MODE = True
+BATCH_SIZE = 1
+MAX_SAMPLES_PER_SUBSET = None
+LOCAL_ONLY = True
+
+SUBSETS_cs = [
+    # "chinese_cs", "chinese_cs_en",
+    # "arabic_cs", "arabic_cs_en",
+    # "greek_cs", "greek_cs_en",
+    # "hindi_cs", "hindi_cs_en",
+    # "indonesian_cs", "indonesian_cs_en",
+    # "korean_cs", "korean_cs_en",
+    "italic_cs", "italic_cs_en",
 ]
 
-# SUBSETS = [
-#     "english_ca",
-#     "chinese_ca",
-#     "arabic_ca",
-#     "greek_ca",
-#     "hindi_ca",
-#     "indonesian_ca",
-#     "korean_ca",
-# ]
+SUBSETS_ca = [
+    # "english_ca",
+    # "chinese_ca",
+    # "arabic_ca",
+    # "greek_ca",
+    # "hindi_ca",
+    # "indonesian_ca",
+    # "korean_ca",
+    "italic_ca",
+]
+
+
+if CA_MODE:
+    OUTDIR = "../results/ca_loglik_v1_5/ca_results"
+    SUBSETS = SUBSETS_ca
+else:
+    OUTDIR = "../results/cs_filtered_lite_eval_loglik_v1_5"
+    SUBSETS = SUBSETS_cs
+
+    
 MODELS = [
     #chinese models
     "Qwen/Qwen2.5-7B",
     "Qwen/Qwen2.5-7B-Instruct",
-    # "Qwen/Qwen2.5-14B",
-    # "Qwen/Qwen2.5-14B-Instruct",
-    # "Qwen/Qwen2.5-32B",
-    # "Qwen/Qwen2.5-32B-Instruct",
+    "Qwen/Qwen2.5-14B",
+    "Qwen/Qwen2.5-14B-Instruct",
+    "Qwen/Qwen2.5-32B",
+    "Qwen/Qwen2.5-32B-Instruct",
     "deepseek-ai/deepseek-llm-7b-base",
     "deepseek-ai/deepseek-llm-7b-chat",
     #english models
@@ -55,12 +72,20 @@ MODELS = [
     "meta-llama/Llama-3.1-8B-Instruct",
     "google/gemma-2-9b",
     "google/gemma-2-9b-it",
+
+
+
+
     # "google/gemma-2-27b",
-    # "google/gemma-2-27b-it",
+
+    # "google/gemma-2-27b-it", #oom
     # "google/gemma-3-12b-pt",
     # "google/gemma-3-12b-it",
-    # "google/gemma-3-27b-pt",
-    # "google/gemma-3-27b-it",
+    # "google/gemma-3-27b-pt", # oom
+    # "google/gemma-3-27b-it", # oom
+
+
+
     #greek models
     "ilsp/Llama-Krikri-8B-Instruct",
     "ilsp/Meltemi-7B-Instruct-v1.5",
@@ -86,14 +111,17 @@ MODELS = [
     "EleutherAI/polyglot-ko-5.8b",
     # multilingual models
     "CohereLabs/aya-expanse-8b",  #instruct
-    #mistral models
-    "mistralai/Ministral-3-8B-Base-2512",
-    "mistralai/Ministral-3-8B-Instruct-2512", # not done
+    # mistral models
+    # "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Base-2512",
+    # "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Instruct-2512",
+    # "/datalake/datastore1/yang/_hf_models/Lucie-7B",
 ]
 
 MISTRAL3_MODELS = {
     "mistralai/Ministral-3-8B-Base-2512",
     "mistralai/Ministral-3-8B-Instruct-2512",
+    "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Base-2512",
+    "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Instruct-2512",
 }
 
 # Localized prompt templates: {lang: (question_label, answer_label, idk_option)}
@@ -103,7 +131,8 @@ PROMPT_LANG = {
     "ar": ("السؤال: ", "الجواب:", "لا أعرف"),
     "hi": ("प्रश्न: ", "उत्तर:", "मुझे नहीं पता"),
     "id": ("Pertanyaan: ", "Jawaban:", "Saya tidak tahu"),
-    "ko": ("질문: ", "답변:", "모르겠습니다"),  
+    "ko": ("질문: ", "답변:", "모르겠습니다"),
+    "it": ("Domanda: ", "Risposta:", "Non lo so"),
     "en": ("Question: ", "Answer:", "I don't know"),
 }
 
@@ -115,6 +144,7 @@ SUBSET_LANG_MAP = {
     "hindi": "hi",
     "indonesian": "id",
     "korean": "ko",
+    "italic": "it",
 }
 
 ANSWER_LETTERS = ["A", "B", "C", "D", "E"]
@@ -157,7 +187,7 @@ def evaluate_model(model_id: str, subsets: list[str], batch_size: int, max_sampl
         model = Mistral3ForConditionalGeneration.from_pretrained(
             model_id,
             torch_dtype=dtype,
-            device_map="auto",
+            device_map="balanced",
             local_files_only=local_only,
         )
     else:
@@ -165,7 +195,7 @@ def evaluate_model(model_id: str, subsets: list[str], batch_size: int, max_sampl
         model = AutoModelForCausalLM.from_pretrained(
             model_id,
             torch_dtype=dtype,
-            device_map="auto",
+            device_map="balanced",
             trust_remote_code=True,
             local_files_only=local_only,
         )
@@ -174,6 +204,13 @@ def evaluate_model(model_id: str, subsets: list[str], batch_size: int, max_sampl
     if tok.pad_token_id is None:
         tok.pad_token = tok.eos_token
     model.eval()
+
+    # gemma-3-27b has vocab_size=262,144; the full (B, seq_len, vocab) logits
+    # tensor can be ~512 MB per forward pass and causes OOM.  When the model
+    # supports num_logits_to_keep (transformers ≥4.48) we ask it to only
+    # materialise logits for the final token position, dropping memory to <1 MB.
+    use_num_logits_to_keep = "num_logits_to_keep" in inspect.signature(model.forward).parameters
+    supports_use_cache = "use_cache" in inspect.signature(model.forward).parameters
 
     # Resolve answer token IDs once.
     # Try multiple prefix formats; use the first where every letter is a single token.
@@ -215,8 +252,11 @@ def evaluate_model(model_id: str, subsets: list[str], batch_size: int, max_sampl
         for i in range(0, len(prompts), batch_size):
             batch = prompts[i: i + batch_size]
             enc = tok(batch, return_tensors="pt", padding=True, truncation=True, max_length=1024).to(model.device)
-            logits = model(**enc).logits          # (B, seq_len, vocab)
-            last_logits = logits[:, -1, :]        # (B, vocab) — position that predicts next token
+            forward_kwargs = {"use_cache": False} if supports_use_cache else {}
+            if use_num_logits_to_keep:
+                last_logits = model(**enc, num_logits_to_keep=1, **forward_kwargs).logits[:, -1, :]
+            else:
+                last_logits = model(**enc, **forward_kwargs).logits[:, -1, :]
             log_probs = F.log_softmax(last_logits, dim=-1)  # (B, vocab)
 
             for b in range(len(batch)):
@@ -258,7 +298,11 @@ def evaluate_model(model_id: str, subsets: list[str], batch_size: int, max_sampl
         )
 
     del model
-    torch.cuda.empty_cache()
+    del tok
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        torch.cuda.ipc_collect()
     return accuracy, abstain_rates, conf_err_rates, cond_accs, raw_records
 
 
@@ -267,29 +311,31 @@ def model_slug(model_id: str) -> str:
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--models", nargs="+", default=MODELS)
-    ap.add_argument("--subsets", nargs="+", default=SUBSETS)
-    ap.add_argument("--outdir", default="results/cs_filtered_lite_eval_loglik_v1_5")
-    ap.add_argument("--batch_size", type=int, default=8)
-    ap.add_argument("--max_samples_per_subset", type=int, default=None)
-    ap.add_argument("--no-hf-download", action="store_true", default=False,
-                    help="Disable HuggingFace downloads; use local cache only (errors if not cached).")
-    args = ap.parse_args()
-
-    outdir = Path(args.outdir)
+    outdir = Path(OUTDIR)
     outdir.mkdir(parents=True, exist_ok=True)
 
-    local_only = args.no_hf_download
-
-    for model_id in args.models:
+    for model_id in MODELS:
         accuracy, abstain_rates, conf_err_rates, cond_accs, raw_records = evaluate_model(
-            model_id, args.subsets, args.batch_size, args.max_samples_per_subset, local_only=local_only
+            model_id, SUBSETS, BATCH_SIZE, MAX_SAMPLES_PER_SUBSET, local_only=LOCAL_ONLY
         )
         slug = model_slug(model_id)
 
-        # Per-model accuracy JSON
+        # Per-model accuracy JSON (merge with existing)
         acc_path = outdir / f"{slug}_accuracy.json"
+        if acc_path.exists():
+            with open(acc_path, encoding="utf-8") as f:
+                existing_acc = json.load(f)
+            for key, new_vals in [
+                ("accuracy",      accuracy),
+                ("abstain_rate",  abstain_rates),
+                ("conf_err_rate", conf_err_rates),
+                ("cond_acc",      cond_accs),
+            ]:
+                existing_acc[key].update(new_vals)
+            accuracy      = existing_acc["accuracy"]
+            abstain_rates = existing_acc["abstain_rate"]
+            conf_err_rates = existing_acc["conf_err_rate"]
+            cond_accs     = existing_acc["cond_acc"]
         with open(acc_path, "w", encoding="utf-8") as f:
             json.dump({
                 "model":         model_id,
@@ -300,8 +346,14 @@ def main():
             }, f, ensure_ascii=False, indent=2)
         print(f"Saved accuracy to {acc_path}")
 
-        # Per-model raw predictions JSON
+        # Per-model raw predictions JSON (merge with existing, dedup by subset)
         raw_path = outdir / f"{slug}_predictions.json"
+        if raw_path.exists():
+            with open(raw_path, encoding="utf-8") as f:
+                existing_raw = json.load(f)
+            new_subsets = {r["subset"] for r in raw_records}
+            kept = [r for r in existing_raw["predictions"] if r["subset"] not in new_subsets]
+            raw_records = kept + raw_records
         with open(raw_path, "w", encoding="utf-8") as f:
             json.dump({"model": model_id, "predictions": raw_records}, f, ensure_ascii=False, indent=2)
         print(f"Saved predictions to {raw_path}")
@@ -309,7 +361,7 @@ def main():
     # Print table
     print(f"\n{'Model':<45} {'Subset':<20} {'Acc':>7} {'Abstain':>8} {'ConfErr':>8} {'CondAcc':>8}")
     print("-" * 100)
-    for model_id in args.models:
+    for model_id in MODELS:
         slug = model_slug(model_id)
         acc_path = outdir / f"{slug}_accuracy.json"
         with open(acc_path, encoding="utf-8") as f:

@@ -1,0 +1,34 @@
+Adding a New Test Subset to run_mcq_eval_loglik.py
+===================================================
+
+1. DATASET (HuggingFace)
+   Upload the new subset JSONL file to the HuggingFace dataset:
+   yangzhang33/culture-eval-benchmark-cs-filtered-lite
+   The subset name must match exactly what you use in SUBSETS below.
+
+2. PROMPT_LANG (if new language)
+   If the subset uses a language not yet in PROMPT_LANG, add an entry:
+     "xx": ("Question label: ", "Answer label:"),
+   where "xx" is the ISO 639-1 language code.
+
+3. SUBSET_LANG_MAP (if new language)
+   Add the subset prefix -> language code mapping so that _cs and _ca
+   variants use the correct prompt language:
+     "prefix": "xx",
+   Example: "italic": "it"
+   Subsets ending in _cs_en always fall back to English automatically.
+
+4. SUBSETS (commented block)
+   Add all variants of the new subset to the reference comment block
+   at the top of the file to keep a complete record:
+     # "prefix_cs", "prefix_cs_en",
+
+5. SUBSETS (active list)
+   Add the variant(s) you actually want to run:
+     "prefix_ca",
+   or whichever suffix applies to the current experiment.
+
+Subset naming conventions:
+  prefix_ca     — cultural awareness questions, native-language prompt
+  prefix_cs     — cultural survey questions, native-language prompt
+  prefix_cs_en  — cultural survey questions, English prompt
