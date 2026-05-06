@@ -28,14 +28,14 @@ OUTPUT_DIR = os.path.join(RESULTS_DIR, "all_results")
 
 # Folder containing *_accuracy.json files with only _ca keys.
 # Set to None if _ca data is already included in RESULTS_DIR files.
-CA_DIR = os.path.join(SCRIPT_DIR, "results", "lite_eval_loglik_v1_5", "ca_results")
+CA_DIR = os.path.join(SCRIPT_DIR, "results", "ca_loglik_v1_5", "ca_results")
 
 # Metric(s) to extract — any subset of:
 #   "accuracy", "abstain_rate", "conf_err_rate", "cond_acc"
 METRICS = ["accuracy", "abstain_rate", "conf_err_rate", "cond_acc"]
 
 # Drop rows where every subset score is below this value (applied per metric)
-FILTER_THRESHOLD = 0.25
+FILTER_THRESHOLD = 0
 
 # Set to True to skip the filtering step
 NO_FILTER = False

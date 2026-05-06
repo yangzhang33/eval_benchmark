@@ -26,8 +26,9 @@ MODELS = [
     "FreedomIntelligence/AceGPT-v2-8B",
     "FreedomIntelligence/AceGPT-v2-8B-Chat",
     # mistral models
-    "mistralai/Ministral-3-8B-Base-2512",
-    "mistralai/Ministral-3-8B-Instruct-2512",
+    "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Base-2512",
+    "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Instruct-2512",
+    "/datalake/datastore1/yang/_hf_models/Lucie-7B",
     # greek models
     "ilsp/Llama-Krikri-8B-Instruct",
     "ilsp/Meltemi-7B-Instruct-v1.5",
@@ -69,6 +70,9 @@ SUBSETS = [
     "korean_ca",
     "korean_cs",
     "korean_cs_en",
+    "italic_ca",
+    "italic_cs",
+    "italic_cs_en",
 ]
 
 MODEL_COUNTRY = {
@@ -95,8 +99,9 @@ MODEL_COUNTRY = {
     "inceptionai/Jais-2-8B-Chat": "UAE",
     "FreedomIntelligence/AceGPT-v2-8B": "UAE",
     "FreedomIntelligence/AceGPT-v2-8B-Chat": "UAE",
-    "mistralai/Ministral-3-8B-Base-2512": "France",
-    "mistralai/Ministral-3-8B-Instruct-2512": "France",
+    "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Base-2512": "France",
+    "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Instruct-2512": "France",
+    "/datalake/datastore1/yang/_hf_models/Lucie-7B": "France",
     "ilsp/Llama-Krikri-8B-Instruct": "Greece",
     "ilsp/Meltemi-7B-Instruct-v1.5": "Greece",
     "sarvamai/OpenHathi-7B-Hi-v0.1-Base": "India",
@@ -113,6 +118,6 @@ MODEL_COUNTRY = {
     "CohereLabs/aya-expanse-8b": "Multilingual",
 }
 
-GAP_LANGUAGES = ["chinese", "arabic", "greek", "hindi", "indonesian", "korean"]
+GAP_LANGUAGES = ["chinese", "arabic", "greek", "hindi", "indonesian", "korean", "italic"]
 
 ALL_METRICS = ["accuracy", "abstain_rate", "conf_err_rate", "cond_acc"]

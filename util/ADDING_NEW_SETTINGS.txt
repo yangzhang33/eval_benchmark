@@ -1,0 +1,43 @@
+================================================================================
+GUIDE: Updating result processing after changing the eval setup
+================================================================================
+
+Assumes run/run_mcq_eval_loglik.py is already updated and results are saved.
+Edit the two files below, then run process_results.py.
+
+--------------------------------------------------------------------------------
+1. util/results_constants.py
+--------------------------------------------------------------------------------
+
+New model added?
+  - Add the EXACT model ID string to MODELS (controls row sort order).
+  - Add the same key to MODEL_COUNTRY.
+  - The model ID must match the "model" field in the *_accuracy.json file.
+    Check with: grep '"model"' results/<run_dir>/<slug>_accuracy.json
+  - Mismatch symptoms: row sorted to bottom of CSV, country column = "Unknown".
+
+New subset/task added?
+  - Add subset name(s) to SUBSETS in canonical order
+    (pattern: <lang>_ca, <lang>_cs, <lang>_cs_en).
+  - If it is a new language, also add it to GAP_LANGUAGES so hall gaps and
+    knowledge gaps are computed.
+
+--------------------------------------------------------------------------------
+2. process_results.py
+--------------------------------------------------------------------------------
+
+New results directory (new experiment version)?
+  - Update RESULTS_DIR to match OUTDIR in the run script.
+  - Mismatch symptom: FileNotFoundError — no *_accuracy.json files found.
+
+--------------------------------------------------------------------------------
+Checklist before running process_results.py
+--------------------------------------------------------------------------------
+
+  [ ] Every new model ID is in results_constants.MODELS (exact string match).
+  [ ] Every new model ID has a MODEL_COUNTRY entry.
+  [ ] Every new subset is in results_constants.SUBSETS.
+  [ ] New language? → added to GAP_LANGUAGES.
+  [ ] process_results.RESULTS_DIR points to the correct run output folder.
+
+================================================================================

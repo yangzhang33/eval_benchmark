@@ -11,8 +11,8 @@ from pathlib import Path
 
 CSV_PATH = Path("cs_filtered_lite_eval_loglik_v1/all_results/accuracy_gaps.csv")
 
-LOCALES = ["ZH", "AR", "EL", "HI", "ID", "KO"]
-LANG_PREFIXES = ["chinese", "arabic", "greek", "hindi", "indonesian", "korean"]
+LOCALES = ["ZH", "AR", "EL", "HI", "ID", "KO", "IT"]
+LANG_PREFIXES = ["chinese", "arabic", "greek", "hindi", "indonesian", "korean", "italic"]
 
 # Three panels: global_gap, local_gap, knowledge_gap
 PANELS = [
@@ -60,9 +60,10 @@ SHORT_NAMES = {
     "inceptionai/Jais-2-8B-Chat":                       "Jais-2-8B",
     "FreedomIntelligence/AceGPT-v2-8B":                 "AceGPT-v2-8B",
     "FreedomIntelligence/AceGPT-v2-8B-Chat":            "AceGPT-v2-8B-Chat",
-    # mistral models
-    "mistralai/Ministral-3-8B-Base-2512":               "Ministral-3B",
-    "mistralai/Ministral-3-8B-Instruct-2512":           "Ministral-3B-IT",
+    # french models
+    "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Base-2512":     "Ministral-3B",
+    "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Instruct-2512": "Ministral-3B-IT",
+    "/datalake/datastore1/yang/_hf_models/Lucie-7B":                     "Lucie-7B",
     # greek models
     "ilsp/Llama-Krikri-8B-Instruct":                    "Krikri-8B",
     "ilsp/Meltemi-7B-Instruct-v1.5":                    "Meltemi-7B",
@@ -103,6 +104,7 @@ COUNTRY_COLORS = {
     "India":           "#639922",
     "Southeast Asian": "#5DCAA5",
     "South Korea":     "#D4537E",
+    "Italy":           "#CE2B37",
     "Multilingual":    "#888780",
 }
 

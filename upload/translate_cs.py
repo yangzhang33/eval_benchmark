@@ -10,7 +10,8 @@ from botocore.config import Config
 from datasets import load_dataset, DatasetDict, Dataset
 from tqdm import tqdm
 
-HF_REPO_ID = "yangzhang33/culture-eval-benchmark-cs-filtered-lite"
+# HF_REPO_ID = "yangzhang33/culture-eval-benchmark-cs-filtered-lite"
+HF_REPO_ID = "yangzhang33/include_culture"
 # BEDROCK_MODEL_ID = "anthropic.claude-3-5-sonnet-20241022-v2:0"
 BEDROCK_MODEL_ID = "us.anthropic.claude-sonnet-4-20250514-v1:0"
 
@@ -24,7 +25,10 @@ CONFIGS = [
     # ("hindi_cs",      "Hindi"),
     # ("indonesian_cs", "Indonesian"),
     # ("korean_cs",     "Korean"),
-    ("italic_cs",     "Italian"),
+    # ("italic_cs",     "Italian"),
+    ("japanese_cs",   "Japanese"),
+    ("french_cs",     "French"),
+    ("spanish_cs",    "Spanish"),
 ]
 
 # Set to a positive integer to limit translation to N samples (for testing); None = all

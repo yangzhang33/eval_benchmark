@@ -20,20 +20,21 @@ import torch.nn.functional as F
 from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM, Mistral3ForConditionalGeneration, MistralCommonBackend
 
-DATASET = "yangzhang33/culture-eval-benchmark-cs-filtered-lite"
-CA_MODE = True
+# DATASET = "yangzhang33/culture-eval-benchmark-cs-filtered-lite"
+DATASET = "yangzhang33/culture-eval-benchmark-cs-filtered-lite-human-filtered"
+CA_MODE = False
 BATCH_SIZE = 1
 MAX_SAMPLES_PER_SUBSET = None
 LOCAL_ONLY = True
 
 SUBSETS_cs = [
     "chinese_cs", "chinese_cs_en",
-    "arabic_cs", "arabic_cs_en",
-    "greek_cs", "greek_cs_en",
-    "hindi_cs", "hindi_cs_en",
-    "indonesian_cs", "indonesian_cs_en",
-    "korean_cs", "korean_cs_en",
-    "italic_cs", "italic_cs_en",
+    # "arabic_cs", "arabic_cs_en",
+    # "greek_cs", "greek_cs_en",
+    # "hindi_cs", "hindi_cs_en",
+    # "indonesian_cs", "indonesian_cs_en",
+    # "korean_cs", "korean_cs_en",
+    # "italic_cs", "italic_cs_en",
 ]
 
 SUBSETS_ca = [
@@ -44,7 +45,7 @@ SUBSETS_ca = [
     "hindi_ca",
     "indonesian_ca",
     "korean_ca",
-    "italic_ca",
+    # "italic_ca",
 ]
 
 
@@ -52,7 +53,7 @@ if CA_MODE:
     OUTDIR = "../results/ca_loglik_v1/ca_results"
     SUBSETS = SUBSETS_ca
 else:
-    OUTDIR = "../results/cs_filtered_lite_eval_loglik_v1"
+    OUTDIR = "../results/cs_filtered_lite_eval_loglik_v2"
     SUBSETS = SUBSETS_cs
 
 
@@ -86,35 +87,35 @@ MODELS = [
 
 
 
-    # #greek models
-    # "ilsp/Llama-Krikri-8B-Instruct",
-    # "ilsp/Meltemi-7B-Instruct-v1.5",
-    # # arabic models
-    # # "inceptionai/jais-13b", # not done
-    # # "inceptionai/jais-13b-chat", # not done
-    # "inceptionai/Jais-2-8B-Chat",
-    # "FreedomIntelligence/AceGPT-v2-8B",
-    # "FreedomIntelligence/AceGPT-v2-8B-Chat",
-    # #hindi models
-    # "sarvamai/OpenHathi-7B-Hi-v0.1-Base",
-    # # "krutrim-ai-labs/Krutrim-1-instruct", # not done
-    # # southeast asian models
-    # "aisingapore/Llama-SEA-LION-v3-8B",
-    # "aisingapore/Llama-SEA-LION-v3-8B-IT",
-    # "SeaLLMs/SeaLLM-7B-v2.5", # instruct
-    # "SeaLLMs/SeaLLMs-v3-7B",
-    # "SeaLLMs/SeaLLMs-v3-7B-Chat",
-    # # korean models
-    # # "naver-hyperclovax/HyperCLOVAX-SEED-Omni-8B" #instruct not done
-    # "beomi/Llama-3-Open-Ko-8B",
-    # "EleutherAI/polyglot-ko-12.8b",
-    # "EleutherAI/polyglot-ko-5.8b",
-    # # multilingual models
-    # "CohereLabs/aya-expanse-8b",  #instruct
+    #greek models
+    "ilsp/Llama-Krikri-8B-Instruct",
+    "ilsp/Meltemi-7B-Instruct-v1.5",
+    # arabic models
+    # "inceptionai/jais-13b", # not done
+    # "inceptionai/jais-13b-chat", # not done
+    "inceptionai/Jais-2-8B-Chat",
+    "FreedomIntelligence/AceGPT-v2-8B",
+    "FreedomIntelligence/AceGPT-v2-8B-Chat",
+    #hindi models
+    "sarvamai/OpenHathi-7B-Hi-v0.1-Base",
+    # "krutrim-ai-labs/Krutrim-1-instruct", # not done
+    # southeast asian models
+    "aisingapore/Llama-SEA-LION-v3-8B",
+    "aisingapore/Llama-SEA-LION-v3-8B-IT",
+    "SeaLLMs/SeaLLM-7B-v2.5", # instruct
+    "SeaLLMs/SeaLLMs-v3-7B",
+    "SeaLLMs/SeaLLMs-v3-7B-Chat",
+    # korean models
+    # "naver-hyperclovax/HyperCLOVAX-SEED-Omni-8B" #instruct not done
+    "beomi/Llama-3-Open-Ko-8B",
+    "EleutherAI/polyglot-ko-12.8b",
+    "EleutherAI/polyglot-ko-5.8b",
+    # multilingual models
+    "CohereLabs/aya-expanse-8b",  #instruct
     # mistral models
-    # "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Base-2512",
-    # "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Instruct-2512",
-    # "/datalake/datastore1/yang/_hf_models/Lucie-7B",
+    "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Base-2512",
+    "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Instruct-2512",
+    "/datalake/datastore1/yang/_hf_models/Lucie-7B",
 ]
 
 MISTRAL3_MODELS = {
@@ -291,6 +292,18 @@ def model_slug(model_id: str) -> str:
 
 
 def main():
+    _ds = DATASET.split("/")[-1]
+    if _ds == "culture-eval-benchmark-cs-filtered-lite":
+        assert "v1" in OUTDIR, (
+            f"DATASET is '{_ds}' but OUTDIR '{OUTDIR}' does not contain 'v1'. "
+            "Please set OUTDIR to a path containing 'v1'."
+        )
+    elif _ds == "culture-eval-benchmark-cs-filtered-lite-human-filtered":
+        assert "v2" in OUTDIR, (
+            f"DATASET is '{_ds}' but OUTDIR '{OUTDIR}' does not contain 'v2'. "
+            "Please set OUTDIR to a path containing 'v2'."
+        )
+
     outdir = Path(OUTDIR)
     outdir.mkdir(parents=True, exist_ok=True)
 
