@@ -9,18 +9,31 @@ arabic_ca, greek_ca, etc.
 from datasets import load_dataset, DatasetDict
 from huggingface_hub import HfApi
 
-HF_REPO_ID = "yangzhang33/culture-eval-benchmark"
+# HF_REPO_ID = "yangzhang33/culture-eval-benchmark"
+HF_REPO_ID = "yangzhang33/culture-eval-benchmark-cs-filtered-lite"
 
 # Language code -> config name
 LANGUAGES = {
-    # "en": "english_ca",
-    # "zh": "chinese_ca",
-    # "ar": "arabic_ca",
-    # "el": "greek_ca",
-    # "hi": "hindi_ca",
-    # "id": "indonesian_ca",
-    # "ko": "korean_ca",
+    "en": "english_ca",
+    "zh": "chinese_ca",
+    "ar": "arabic_ca",
+    "el": "greek_ca",
+    "hi": "hindi_ca",
+    "id": "indonesian_ca",
+    "ko": "korean_ca",
     "it": "italic_ca",
+    "ja": "japanese_ca",
+    "fr": "french_ca",
+    "es": "spanish_ca",
+    "bn": "bengali_ca",
+    "nl": "dutch_ca",
+    "he": "hebrew_ca",
+    "ne": "nepali_ca",
+    "fa": "persian_ca",
+    "pl": "polish_ca",
+    "ru": "russian_ca",
+    "te": "telugu_ca",
+    "uk": "ukrainian_ca",
 }
 
 api = HfApi()

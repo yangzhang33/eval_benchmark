@@ -4,7 +4,7 @@ Adding a New Test Subset to run_mcq_eval_loglik.py
 1. DATASET (HuggingFace)
    Upload the new subset JSONL file to the HuggingFace dataset:
    yangzhang33/culture-eval-benchmark-cs-filtered-lite
-   The subset name must match exactly what you use in SUBSETS below.
+   The subset name must match exactly what you use in SUBSETS below. already done.
 
 2. PROMPT_LANG (if new language)
    If the subset uses a language not yet in PROMPT_LANG, add an entry:

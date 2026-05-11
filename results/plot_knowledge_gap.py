@@ -11,8 +11,8 @@ from pathlib import Path
 
 CSV_PATH = Path("cs_filtered_lite_eval_loglik_v1/all_results/accuracy_gaps.csv")
 
-LOCALES = ["ZH", "AR", "EL", "HI", "ID", "KO", "IT"]
-LANG_PREFIXES = ["chinese", "arabic", "greek", "hindi", "indonesian", "korean", "italic"]
+LOCALES = ["ZH", "AR", "EL", "HI", "ID", "KO", "IT", "FR", "JA", "ES"]
+LANG_PREFIXES = ["chinese", "arabic", "greek", "hindi", "indonesian", "korean", "italic", "french", "japanese", "spanish"]
 
 # Three panels: global_gap, local_gap, knowledge_gap
 PANELS = [
@@ -64,6 +64,13 @@ SHORT_NAMES = {
     "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Base-2512":     "Ministral-3B",
     "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Instruct-2512": "Ministral-3B-IT",
     "/datalake/datastore1/yang/_hf_models/Lucie-7B":                     "Lucie-7B",
+    # european models
+    "/datalake/datastore1/yang/_hf_models/EuroLLM-9B-2512":              "EuroLLM-9B",
+    "/datalake/datastore1/yang/_hf_models/EuroLLM-9B-Instruct-2512":     "EuroLLM-9B-IT",
+    "/datalake/datastore1/yang/_hf_models/EuroLLM-22B-2512":             "EuroLLM-22B",
+    "/datalake/datastore1/yang/_hf_models/EuroLLM-22B-Instruct-2512":    "EuroLLM-22B-IT",
+    "/datalake/datastore1/yang/_hf_models/Teuken-7B-base-v0.6":          "Teuken-7B",
+    "/datalake/datastore1/yang/_hf_models/Teuken-7B-instruct-v0.6":      "Teuken-7B-IT",
     # greek models
     "ilsp/Llama-Krikri-8B-Instruct":                    "Krikri-8B",
     "ilsp/Meltemi-7B-Instruct-v1.5":                    "Meltemi-7B",
@@ -93,6 +100,7 @@ HOME_LOCALE_LABEL = {
     "India":           "HI",
     "Southeast Asian": "ID",
     "South Korea":     "KO",
+    "France":          "FR",
 }
 
 COUNTRY_COLORS = {
@@ -105,6 +113,7 @@ COUNTRY_COLORS = {
     "Southeast Asian": "#5DCAA5",
     "South Korea":     "#D4537E",
     "Italy":           "#CE2B37",
+    "Europe":          "#2E86AB",
     "Multilingual":    "#888780",
 }
 
@@ -112,6 +121,13 @@ COUNTRY_COLORS = {
 
 df = pd.read_csv(CSV_PATH)
 df["short"] = df["model"].map(SHORT_NAMES).fillna(df["model"])
+
+# Filter to languages present in the CSV (based on the first panel's suffix)
+available = [(loc, lang) for loc, lang in zip(LOCALES, LANG_PREFIXES)
+             if f"{lang}_{PANELS[0]['col_suffix']}" in df.columns]
+LOCALES, LANG_PREFIXES = zip(*available) if available else ([], [])
+LOCALES = list(LOCALES)
+LANG_PREFIXES = list(LANG_PREFIXES)
 
 model_labels = df["short"].tolist()
 countries    = df["country"].tolist()

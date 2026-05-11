@@ -1,16 +1,19 @@
 """
-Unified results processing pipeline.
+Unified results processing pipeline, split into two independent parts.
 
-Steps:
-  1. Collect: read *_accuracy.json files, extract selected metric(s)
-  2. Filter:  drop rows where all subset scores < threshold
-  3. Reorder: sort columns/rows by canonical subset/model order
-  4. Gaps:    compute global/local/knowledge gaps per language
+  Part 1 — Generate CSVs:
+    Read *_accuracy.json files, reorder, and save one CSV per metric.
+    Also produces accuracy_filtered.csv if filtering is enabled.
 
-Edit the CONFIG section below to control behaviour.
+  Part 2 — Process CSVs:
+    Read the generated CSVs and compute gaps; write results to PROCESS_OUTPUT_DIR.
+
+Toggle RUN_GENERATE / RUN_PROCESS in the CONFIG section to run either or both parts.
 """
 
 import os
+
+import pandas as pd
 
 from util.results_pipeline import add_hall_gaps, collect, compute_gaps, filter_low, reorder
 
@@ -18,17 +21,21 @@ from util.results_pipeline import add_hall_gaps, collect, compute_gaps, filter_l
 # CONFIG — edit this section
 # ===========================================================================
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+# ---------------------------------------------------------------------------
+# Part 1 — Generate CSVs
+# ---------------------------------------------------------------------------
+
+RUN_GENERATE = True
 
 # Folder containing *_accuracy.json files
-RESULTS_DIR = os.path.join(SCRIPT_DIR, "results", "cs_filtered_lite_eval_loglik_v1_5")
+RESULTS_DIR = "results/cs_filtered_lite_eval_loglik_v1"
 
 # Folder to write output CSVs into (will be created if it doesn't exist)
-OUTPUT_DIR = os.path.join(RESULTS_DIR, "all_results")
+OUTPUT_DIR = "results/cs_filtered_lite_eval_loglik_v1/all_results"
 
 # Folder containing *_accuracy.json files with only _ca keys.
 # Set to None if _ca data is already included in RESULTS_DIR files.
-CA_DIR = os.path.join(SCRIPT_DIR, "results", "ca_loglik_v1_5", "ca_results")
+CA_DIR = "results/ca_loglik_v1/ca_results"
 
 # Metric(s) to extract — any subset of:
 #   "accuracy", "abstain_rate", "conf_err_rate", "cond_acc"
@@ -40,17 +47,32 @@ FILTER_THRESHOLD = 0
 # Set to True to skip the filtering step
 NO_FILTER = False
 
+# ---------------------------------------------------------------------------
+# Part 2 — Process CSVs
+# ---------------------------------------------------------------------------
+
+RUN_PROCESS = True
+
+# Direct path to the input accuracy CSV; its parent folder is used as input/output dir.
+PROCESS_INPUT_CSV = "results/cs_filtered_lite_eval_loglik_v1/all_results/accuracy.csv"
+
+PROCESS_INPUT_DIR = os.path.dirname(PROCESS_INPUT_CSV)
+
+# Folder to write computed results into (will be created if it doesn't exist)
+PROCESS_OUTPUT_DIR = PROCESS_INPUT_DIR
+
 # Set to True to skip gap computation
 NO_GAPS = False
 
 # ===========================================================================
 
 
-def main():
+def run_generate():
+    """Part 1: read JSON files and produce one CSV per metric."""
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    print(f"Results dir : {RESULTS_DIR}")
-    print(f"Output dir  : {OUTPUT_DIR}")
-    print(f"Metrics     : {METRICS}")
+    print(f"[generate] Results dir : {RESULTS_DIR}")
+    print(f"[generate] Output dir  : {OUTPUT_DIR}")
+    print(f"[generate] Metrics     : {METRICS}")
 
     for metric in METRICS:
         print(f"\n--- {metric} ---")
@@ -71,23 +93,48 @@ def main():
 
         # 4. Filter (accuracy only)
         if not NO_FILTER and metric == "accuracy":
-            df_filtered = filter_low(df, FILTER_THRESHOLD)
+            df_filtered = filter_low(pd.read_csv(raw_path), FILTER_THRESHOLD)
             filtered_path = os.path.join(OUTPUT_DIR, f"{metric}_filtered.csv")
             df_filtered.to_csv(filtered_path, index=False)
             print(f"  saved {filtered_path}")
-        else:
-            df_filtered = df
 
-        # 5. Gaps (accuracy only)
-        if not NO_GAPS and metric == "accuracy":
-            df_gaps = compute_gaps(df_filtered)
-            if len(df_gaps.columns) > 2:
-                gaps_path = os.path.join(OUTPUT_DIR, f"{metric}_gaps.csv")
-                df_gaps.to_csv(gaps_path, index=False)
-                print(f"  saved {gaps_path}")
-            else:
-                print("  gaps: skipped (missing required subset columns)")
 
+def run_process():
+    """Part 2: read generated CSVs and compute gaps."""
+    os.makedirs(PROCESS_OUTPUT_DIR, exist_ok=True)
+    print(f"[process] Input dir  : {PROCESS_INPUT_DIR}")
+    print(f"[process] Output dir : {PROCESS_OUTPUT_DIR}")
+
+    if NO_GAPS:
+        print("  gaps: skipped (NO_GAPS=True)")
+        return
+
+    # Determine which accuracy CSV to use
+    filtered_path = os.path.join(PROCESS_INPUT_DIR, "accuracy_filtered.csv")
+    raw_path = PROCESS_INPUT_CSV
+    if not NO_FILTER and os.path.isfile(filtered_path):
+        input_path = filtered_path
+    elif os.path.isfile(raw_path):
+        input_path = raw_path
+    else:
+        print(f"  gaps: skipped (no accuracy CSV found in {PROCESS_INPUT_DIR})")
+        return
+
+    print(f"\n--- accuracy gaps ---")
+    df_gaps = compute_gaps(pd.read_csv(input_path))
+    if len(df_gaps.columns) > 2:
+        gaps_path = os.path.join(PROCESS_OUTPUT_DIR, "accuracy_gaps.csv")
+        df_gaps.to_csv(gaps_path, index=False)
+        print(f"  saved {gaps_path}")
+    else:
+        print("  gaps: skipped (missing required subset columns)")
+
+
+def main():
+    if RUN_GENERATE:
+        run_generate()
+    if RUN_PROCESS:
+        run_process()
     print("\nDone.")
 
 

@@ -7,7 +7,8 @@ Then re-uploads each config back to the same repo.
 
 from datasets import load_dataset, DatasetDict, get_dataset_config_names
 
-HF_REPO_ID = "yangzhang33/culture-eval-benchmark"
+# HF_REPO_ID = "yangzhang33/culture-eval-benchmark"
+HF_REPO_ID = "yangzhang33/culture-eval-benchmark-cs-filtered-lite"
 
 configs = [
     # "arabic_ca", "arabic_cs",
@@ -17,7 +18,19 @@ configs = [
     # "hindi_ca", "hindi_cs",
     # "indonesian_ca", "indonesian_cs",
     # "korean_ca", "korean_cs",
-    "italic_ca", "italic_cs",
+    # "italic_ca", "italic_cs",
+    # "japanese_ca",
+    # "french_ca",
+    # "spanish_ca",
+    "bengali_ca",
+    "dutch_ca",
+    "hebrew_ca",
+    "nepali_ca",
+    "persian_ca",
+    "polish_ca",
+    "russian_ca",
+    "telugu_ca",
+    "ukrainian_ca",
 ]
 print(f"Processing {len(configs)} configs: {configs}")
 

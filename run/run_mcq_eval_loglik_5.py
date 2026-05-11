@@ -22,6 +22,9 @@ from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM, Mistral3ForConditionalGeneration, MistralCommonBackend
 
 DATASET = "yangzhang33/culture-eval-benchmark-cs-filtered-lite"
+OUTDIR_cs = "../results/cs_filtered_lite_eval_loglik_v1_5"
+OUTDIR_ca = "../results/ca_loglik_v1_5/ca_results"
+
 CA_MODE = False
 BATCH_SIZE = 1
 MAX_SAMPLES_PER_SUBSET = None
@@ -35,6 +38,9 @@ SUBSETS_cs = [
     "indonesian_cs", "indonesian_cs_en",
     "korean_cs", "korean_cs_en",
     # "italic_cs", "italic_cs_en",
+    "french_cs", "french_cs_en",
+    "japanese_cs", "japanese_cs_en",
+    "spanish_cs", "spanish_cs_en",
 ]
 
 SUBSETS_ca = [
@@ -46,14 +52,17 @@ SUBSETS_ca = [
     "indonesian_ca",
     "korean_ca",
     # "italic_ca",
+    "french_ca",
+    "japanese_ca",
+    "spanish_ca",
 ]
 
 
 if CA_MODE:
-    OUTDIR = "../results/ca_loglik_v1_5/ca_results"
+    OUTDIR = OUTDIR_ca
     SUBSETS = SUBSETS_ca
 else:
-    OUTDIR = "../results/cs_filtered_lite_eval_loglik_v1_5"
+    OUTDIR = OUTDIR_cs
     SUBSETS = SUBSETS_cs
 
 
@@ -133,6 +142,9 @@ PROMPT_LANG = {
     "id": ("Pertanyaan: ", "Jawaban:", "Saya tidak tahu"),
     "ko": ("질문: ", "답변:", "모르겠습니다"),
     "it": ("Domanda: ", "Risposta:", "Non lo so"),
+    "fr": ("Question : ", "Réponse :", "Je ne sais pas"),
+    "ja": ("質問：", "回答：", "わかりません"),
+    "es": ("Pregunta: ", "Respuesta:", "No lo sé"),
     "en": ("Question: ", "Answer:", "I don't know"),
 }
 
@@ -145,6 +157,9 @@ SUBSET_LANG_MAP = {
     "indonesian": "id",
     "korean": "ko",
     "italic": "it",
+    "french": "fr",
+    "japanese": "ja",
+    "spanish": "es",
 }
 
 ANSWER_LETTERS = ["A", "B", "C", "D", "E"]

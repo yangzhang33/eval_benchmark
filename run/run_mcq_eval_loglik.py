@@ -7,9 +7,9 @@ Instead of generating text, computes the log-probability of each answer token
 This works uniformly for base and instruct models without any special formatting.
 
 Usage:
-  python run_mcq_eval_loglik.py --outdir results
-  python run_mcq_eval_loglik.py --models Qwen/Qwen2.5-7B --outdir results
+  python run_mcq_eval_loglik.py --outdir results --models Qwen/Qwen2.5-7B --subsets english_ca chinese_ca
 """
+import argparse
 import inspect
 import json
 import gc
@@ -19,104 +19,6 @@ import torch
 import torch.nn.functional as F
 from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM, Mistral3ForConditionalGeneration, MistralCommonBackend
-
-# DATASET = "yangzhang33/culture-eval-benchmark-cs-filtered-lite"
-DATASET = "yangzhang33/culture-eval-benchmark-cs-filtered-lite-human-filtered"
-CA_MODE = False
-BATCH_SIZE = 1
-MAX_SAMPLES_PER_SUBSET = None
-LOCAL_ONLY = True
-
-SUBSETS_cs = [
-    "chinese_cs", "chinese_cs_en",
-    # "arabic_cs", "arabic_cs_en",
-    # "greek_cs", "greek_cs_en",
-    # "hindi_cs", "hindi_cs_en",
-    # "indonesian_cs", "indonesian_cs_en",
-    # "korean_cs", "korean_cs_en",
-    # "italic_cs", "italic_cs_en",
-]
-
-SUBSETS_ca = [
-    "english_ca",
-    "chinese_ca",
-    "arabic_ca",
-    "greek_ca",
-    "hindi_ca",
-    "indonesian_ca",
-    "korean_ca",
-    # "italic_ca",
-]
-
-
-if CA_MODE:
-    OUTDIR = "../results/ca_loglik_v1/ca_results"
-    SUBSETS = SUBSETS_ca
-else:
-    OUTDIR = "../results/cs_filtered_lite_eval_loglik_v2"
-    SUBSETS = SUBSETS_cs
-
-
-
-MODELS = [
-    # #chinese models
-    # "Qwen/Qwen2.5-7B",
-    # "Qwen/Qwen2.5-7B-Instruct",
-    # "Qwen/Qwen2.5-14B",
-    # "Qwen/Qwen2.5-14B-Instruct",
-    # "Qwen/Qwen2.5-32B",
-    # "Qwen/Qwen2.5-32B-Instruct",
-    # "deepseek-ai/deepseek-llm-7b-base",
-    # "deepseek-ai/deepseek-llm-7b-chat",
-    # #english models
-    # "meta-llama/Meta-Llama-3.1-8B",
-    # "meta-llama/Llama-3.1-8B-Instruct",
-    # "google/gemma-2-9b",
-    # "google/gemma-2-9b-it",
-
-
-
-
-    "google/gemma-2-27b",
-
-    "google/gemma-2-27b-it", #oom
-    "google/gemma-3-12b-pt",
-    "google/gemma-3-12b-it",
-    "google/gemma-3-27b-pt", # oom
-    "google/gemma-3-27b-it", # oom
-
-
-
-    #greek models
-    "ilsp/Llama-Krikri-8B-Instruct",
-    "ilsp/Meltemi-7B-Instruct-v1.5",
-    # arabic models
-    # "inceptionai/jais-13b", # not done
-    # "inceptionai/jais-13b-chat", # not done
-    "inceptionai/Jais-2-8B-Chat",
-    "FreedomIntelligence/AceGPT-v2-8B",
-    "FreedomIntelligence/AceGPT-v2-8B-Chat",
-    #hindi models
-    "sarvamai/OpenHathi-7B-Hi-v0.1-Base",
-    # "krutrim-ai-labs/Krutrim-1-instruct", # not done
-    # southeast asian models
-    "aisingapore/Llama-SEA-LION-v3-8B",
-    "aisingapore/Llama-SEA-LION-v3-8B-IT",
-    "SeaLLMs/SeaLLM-7B-v2.5", # instruct
-    "SeaLLMs/SeaLLMs-v3-7B",
-    "SeaLLMs/SeaLLMs-v3-7B-Chat",
-    # korean models
-    # "naver-hyperclovax/HyperCLOVAX-SEED-Omni-8B" #instruct not done
-    "beomi/Llama-3-Open-Ko-8B",
-    "EleutherAI/polyglot-ko-12.8b",
-    "EleutherAI/polyglot-ko-5.8b",
-    # multilingual models
-    "CohereLabs/aya-expanse-8b",  #instruct
-    # mistral models
-    "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Base-2512",
-    "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Instruct-2512",
-    "/datalake/datastore1/yang/_hf_models/Lucie-7B",
-]
 
 MISTRAL3_MODELS = {
     "mistralai/Ministral-3-8B-Base-2512",
@@ -134,7 +36,19 @@ PROMPT_LANG = {
     "id": ("Pertanyaan: ", "Jawaban:"),
     "ko": ("질문: ", "답변:"),
     "it": ("Domanda: ", "Risposta:"),
+    "fr": ("Question: ", "Réponse:"),
+    "ja": ("質問：", "回答："),
+    "es": ("Pregunta: ", "Respuesta:"),
     "en": ("Question: ", "Answer:"),
+    "bn": ("প্রশ্ন: ", "উত্তর:"),
+    "nl": ("Vraag: ", "Antwoord:"),
+    "he": ("שאלה: ", "תשובה:"),
+    "ne": ("प्रश्न: ", "उत्तर:"),
+    "fa": ("سؤال: ", "جواب:"),
+    "pl": ("Pytanie: ", "Odpowiedź:"),
+    "ru": ("Вопрос: ", "Ответ:"),
+    "te": ("ప్రశ్న: ", "సమాధానం:"),
+    "uk": ("Питання: ", "Відповідь:"),
 }
 
 # Maps subset prefix to prompt language (only for native-language subsets)
@@ -146,6 +60,64 @@ SUBSET_LANG_MAP = {
     "indonesian": "id",
     "korean": "ko",
     "italic": "it",
+    "french": "fr",
+    "japanese": "ja",
+    "spanish": "es",
+    "bengali": "bn",
+    "dutch": "nl",
+    "hebrew": "he",
+    "nepali": "ne",
+    "persian": "fa",
+    "polish": "pl",
+    "russian": "ru",
+    "telugu": "te",
+    "ukrainian": "uk",
+}
+
+# Maps subset prefix to English culture name (used by --v3-en preamble)
+SUBSET_CULTURE_MAP = {
+    "chinese": "Chinese",
+    "arabic": "Arabic",
+    "greek": "Greek",
+    "hindi": "Hindi",
+    "indonesian": "Indonesian",
+    "korean": "Korean",
+    "italic": "Italian",
+    "french": "French",
+    "japanese": "Japanese",
+    "spanish": "Spanish",
+    "bengali": "Bengali",
+    "dutch": "Dutch",
+    "hebrew": "Hebrew",
+    "nepali": "Nepali",
+    "persian": "Persian",
+    "polish": "Polish",
+    "russian": "Russian",
+    "telugu": "Telugu",
+    "ukrainian": "Ukrainian",
+}
+
+# Native-language culture preambles (used by --v3-cs preamble)
+SUBSET_CULTURE_NATIVE_MAP = {
+    "chinese":    "这是一个关于中国文化的问题。",
+    "arabic":     "هذا سؤال عن الثقافة العربية.",
+    "greek":      "Αυτή είναι μια ερώτηση σχετικά με την ελληνική κουλτούρα.",
+    "hindi":      "यह भारतीय संस्कृति के बारे में एक प्रश्न है।",
+    "indonesian": "Ini adalah pertanyaan tentang budaya Indonesia.",
+    "korean":     "이것은 한국 문화에 관한 질문입니다.",
+    "italic":     "Questa è una domanda sulla cultura italiana.",
+    "french":     "C'est une question sur la culture française.",
+    "japanese":   "これは日本文化に関する問題です。",
+    "spanish":    "Esta es una pregunta sobre la cultura española.",
+    "bengali":    "এটি বাংলা সংস্কৃতি সম্পর্কে একটি প্রশ্ন।",
+    "dutch":      "Dit is een vraag over de Nederlandse cultuur.",
+    "hebrew":     "זוהי שאלה על התרבות העברית.",
+    "nepali":     "यो नेपाली संस्कृतिको बारेमा एउटा प्रश्न हो।",
+    "persian":    "این یک سؤال درباره فرهنگ ایرانی است.",
+    "polish":     "To jest pytanie o kulturę polską.",
+    "russian":    "Это вопрос о русской культуре.",
+    "telugu":     "ఇది తెలుగు సంస్కృతి గురించిన ప్రశ్న.",
+    "ukrainian":  "Це питання про українську культуру.",
 }
 
 ANSWER_LETTERS = ["A", "B", "C", "D"]
@@ -154,20 +126,53 @@ ANSWER_LETTERS = ["A", "B", "C", "D"]
 def subset_lang(subset: str) -> str:
     """Infer prompt language from subset name.
 
-    - language_ca  -> native language
-    - language_cs  -> native language
+    - english_ca     -> English
+    - language_ca    -> native language (must be in SUBSET_LANG_MAP)
+    - language_cs    -> native language (must be in SUBSET_LANG_MAP)
     - language_cs_en -> English
     """
+    if subset.endswith("_cs_en") or subset == "english_ca":
+        return "en"
     for prefix, lang in SUBSET_LANG_MAP.items():
         if subset.startswith(prefix) and (subset.endswith("_ca") or subset.endswith("_cs")):
             return lang
-    return "en"
+    raise ValueError(
+        f"Subset '{subset}' is not '_cs_en' or 'english_ca', and its prefix is not in "
+        f"SUBSET_LANG_MAP. Add an entry or check the subset name."
+    )
 
 
-def build_prompt(row: dict, lang: str = "en") -> str:
+def culture_preamble(subset: str) -> str | None:
+    """Return a culture context preamble for _cs_en subsets (used with --v3-en)."""
+    if not subset.endswith("_cs_en"):
+        return None
+    for prefix, culture in SUBSET_CULTURE_MAP.items():
+        if subset.startswith(prefix):
+            return f"This is a question about {culture} culture."
+    raise ValueError(
+        f"Subset '{subset}' ends with '_cs_en' but its prefix is not in SUBSET_CULTURE_MAP. "
+        f"Add an entry for it."
+    )
+
+
+def culture_preamble_native(subset: str) -> str | None:
+    """Return a native-language culture context preamble for _cs subsets (used with --v3-cs)."""
+    if not subset.endswith("_cs"):
+        return None
+    for prefix, preamble in SUBSET_CULTURE_NATIVE_MAP.items():
+        if subset.startswith(prefix):
+            return preamble
+    raise ValueError(
+        f"Subset '{subset}' ends with '_cs' but its prefix is not in SUBSET_CULTURE_NATIVE_MAP. "
+        f"Add an entry for it."
+    )
+
+
+def build_prompt(row: dict, lang: str = "en", preamble: str | None = None) -> str:
     q_label, ans_label = PROMPT_LANG[lang]
+    prefix = f"{preamble}\n" if preamble else ""
     return (
-        f"{q_label}{row['question']}\n"
+        f"{prefix}{q_label}{row['question']}\n"
         f"A. {row['option_a']}\n"
         f"B. {row['option_b']}\n"
         f"C. {row['option_c']}\n"
@@ -177,7 +182,7 @@ def build_prompt(row: dict, lang: str = "en") -> str:
 
 
 @torch.inference_mode()
-def evaluate_model(model_id: str, subsets: list[str], batch_size: int, max_samples_per_subset: int | None = None, local_only: bool = False) -> tuple[dict, list]:
+def evaluate_model(model_id: str, subsets: list[str], batch_size: int, dataset: str, max_samples_per_subset: int | None = None, local_only: bool = False, v3_en: bool = False, v3_cs: bool = False) -> tuple[dict, list]:
     """Load model, run on all subsets, return (accuracy_by_subset, raw_records)."""
     print(f"\n=== Loading {model_id} ===")
     dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
@@ -237,11 +242,15 @@ def evaluate_model(model_id: str, subsets: list[str], batch_size: int, max_sampl
     raw_records = []
     for subset in subsets:
         print(f"  Subset: {subset}", flush=True)
-        ds = load_dataset(DATASET, subset, split="test")
+        ds = load_dataset(dataset, subset, split="test")
         if max_samples_per_subset is not None:
             ds = ds.select(range(min(max_samples_per_subset, len(ds))))
         lang = subset_lang(subset)
-        prompts = [build_prompt(row, lang=lang) for row in ds]
+        preamble = (
+            (culture_preamble(subset) if v3_en else None)
+            or (culture_preamble_native(subset) if v3_cs else None)
+        )
+        prompts = [build_prompt(row, lang=lang, preamble=preamble) for row in ds]
         gold = [row["answer"].strip().upper() for row in ds]
 
         preds = []
@@ -292,23 +301,41 @@ def model_slug(model_id: str) -> str:
 
 
 def main():
-    _ds = DATASET.split("/")[-1]
+    parser = argparse.ArgumentParser(description="MCQ eval via log-likelihood scoring")
+    parser.add_argument("--dataset", default="yangzhang33/culture-eval-benchmark-cs-filtered-lite")
+    parser.add_argument("--outdir", required=True)
+    parser.add_argument("--batch-size", type=int, default=4)
+    parser.add_argument("--max-samples", type=int, default=None)
+    parser.add_argument("--local-only", action="store_true")
+    parser.add_argument("--v3-en", action="store_true", help="Prepend culture context preamble to _cs_en subset prompts")
+    parser.add_argument("--v3-cs", action="store_true", help="Prepend native-language culture context preamble to _cs subset prompts")
+    parser.add_argument("--models", nargs="*", default=[], metavar="MODEL")
+    parser.add_argument("--subsets", nargs="+", required=True, metavar="SUBSET")
+    args = parser.parse_args()
+
+    if not args.models:
+        print("No models specified, nothing to do.")
+        return
+
+    _ds = args.dataset.split("/")[-1]
     if _ds == "culture-eval-benchmark-cs-filtered-lite":
-        assert "v1" in OUTDIR, (
-            f"DATASET is '{_ds}' but OUTDIR '{OUTDIR}' does not contain 'v1'. "
-            "Please set OUTDIR to a path containing 'v1'."
+        assert any(v in args.outdir for v in ("v1", "v3")), (
+            f"DATASET is '{_ds}' but --outdir '{args.outdir}' does not contain 'v1' or 'v3'."
         )
     elif _ds == "culture-eval-benchmark-cs-filtered-lite-human-filtered":
-        assert "v2" in OUTDIR, (
-            f"DATASET is '{_ds}' but OUTDIR '{OUTDIR}' does not contain 'v2'. "
-            "Please set OUTDIR to a path containing 'v2'."
+        assert "v2" in args.outdir, (
+            f"DATASET is '{_ds}' but --outdir '{args.outdir}' does not contain 'v2'."
         )
 
-    outdir = Path(OUTDIR)
+    outdir = Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
 
-    for model_id in MODELS:
-        accuracy, raw_records = evaluate_model(model_id, SUBSETS, BATCH_SIZE, MAX_SAMPLES_PER_SUBSET, local_only=LOCAL_ONLY)
+    for model_id in args.models:
+        accuracy, raw_records = evaluate_model(
+            model_id, args.subsets, args.batch_size, args.dataset,
+            max_samples_per_subset=args.max_samples, local_only=args.local_only,
+            v3_en=args.v3_en, v3_cs=args.v3_cs,
+        )
         slug = model_slug(model_id)
 
         # Per-model accuracy JSON (merge with existing)
@@ -337,7 +364,7 @@ def main():
     # Print table
     print(f"\n{'Model':<45} {'Subset':<20} {'Acc':>6}")
     print("-" * 75)
-    for model_id in MODELS:
+    for model_id in args.models:
         slug = model_slug(model_id)
         acc_path = outdir / f"{slug}_accuracy.json"
         with open(acc_path, encoding="utf-8") as f:

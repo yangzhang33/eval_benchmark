@@ -29,6 +29,13 @@ MODELS = [
     "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Base-2512",
     "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Instruct-2512",
     "/datalake/datastore1/yang/_hf_models/Lucie-7B",
+    # european models
+    "/datalake/datastore1/yang/_hf_models/EuroLLM-9B-2512",
+    "/datalake/datastore1/yang/_hf_models/EuroLLM-9B-Instruct-2512",
+    "/datalake/datastore1/yang/_hf_models/EuroLLM-22B-2512",
+    "/datalake/datastore1/yang/_hf_models/EuroLLM-22B-Instruct-2512",
+    "/datalake/datastore1/yang/_hf_models/Teuken-7B-base-v0.6",
+    "/datalake/datastore1/yang/_hf_models/Teuken-7B-instruct-v0.6",
     # greek models
     "ilsp/Llama-Krikri-8B-Instruct",
     "ilsp/Meltemi-7B-Instruct-v1.5",
@@ -73,6 +80,15 @@ SUBSETS = [
     "italic_ca",
     "italic_cs",
     "italic_cs_en",
+    "french_ca",
+    "french_cs",
+    "french_cs_en",
+    "japanese_ca",
+    "japanese_cs",
+    "japanese_cs_en",
+    "spanish_ca",
+    "spanish_cs",
+    "spanish_cs_en",
 ]
 
 MODEL_COUNTRY = {
@@ -102,6 +118,12 @@ MODEL_COUNTRY = {
     "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Base-2512": "France",
     "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Instruct-2512": "France",
     "/datalake/datastore1/yang/_hf_models/Lucie-7B": "France",
+    "/datalake/datastore1/yang/_hf_models/EuroLLM-9B-2512": "Europe",
+    "/datalake/datastore1/yang/_hf_models/EuroLLM-9B-Instruct-2512": "Europe",
+    "/datalake/datastore1/yang/_hf_models/EuroLLM-22B-2512": "Europe",
+    "/datalake/datastore1/yang/_hf_models/EuroLLM-22B-Instruct-2512": "Europe",
+    "/datalake/datastore1/yang/_hf_models/Teuken-7B-base-v0.6": "Europe",
+    "/datalake/datastore1/yang/_hf_models/Teuken-7B-instruct-v0.6": "Europe",
     "ilsp/Llama-Krikri-8B-Instruct": "Greece",
     "ilsp/Meltemi-7B-Instruct-v1.5": "Greece",
     "sarvamai/OpenHathi-7B-Hi-v0.1-Base": "India",
@@ -118,6 +140,6 @@ MODEL_COUNTRY = {
     "CohereLabs/aya-expanse-8b": "Multilingual",
 }
 
-GAP_LANGUAGES = ["chinese", "arabic", "greek", "hindi", "indonesian", "korean", "italic"]
+GAP_LANGUAGES = ["chinese", "arabic", "greek", "hindi", "indonesian", "korean", "italic", "french", "japanese", "spanish"]
 
 ALL_METRICS = ["accuracy", "abstain_rate", "conf_err_rate", "cond_acc"]

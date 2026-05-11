@@ -77,7 +77,7 @@ Translated culture-specific (CS_EN):
 Each model is evaluated on:
 
   - CA (local language)
-  - CA (English)
+  - CA_EN (English)
   - CS (local language)
   - CS_EN (English translation)
 

@@ -26,9 +26,18 @@ CONFIGS = [
     # ("indonesian_cs", "Indonesian"),
     # ("korean_cs",     "Korean"),
     # ("italic_cs",     "Italian"),
-    ("japanese_cs",   "Japanese"),
-    ("french_cs",     "French"),
-    ("spanish_cs",    "Spanish"),
+    # ("japanese_cs",   "Japanese"),
+    # ("french_cs",     "French"),
+    # ("spanish_cs",    "Spanish"),
+    ("dutch_cs",      "Dutch"),
+    ("polish_cs",     "Polish"),
+    ("russian_cs",    "Russian"),
+    ("ukrainian_cs",  "Ukrainian"),
+    ("hebrew_cs",     "Hebrew"),
+    ("persian_cs",    "Persian"),
+    ("bengali_cs",    "Bengali"),
+    ("nepali_cs",     "Nepali"),
+    ("telugu_cs",     "Telugu"),
 ]
 
 # Set to a positive integer to limit translation to N samples (for testing); None = all
