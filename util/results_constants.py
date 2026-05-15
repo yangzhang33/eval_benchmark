@@ -19,6 +19,11 @@ MODELS = [
     "Qwen/Qwen2.5-32B-Instruct",
     "deepseek-ai/deepseek-llm-7b-base",
     "deepseek-ai/deepseek-llm-7b-chat",
+    "/datalake/datastore1/yang/_hf_models/DeepSeek-V2-Lite",
+    "/datalake/datastore1/yang/_hf_models/DeepSeek-V2-Lite-Chat",
+    "/datalake/datastore1/yang/_hf_models/GLM-4.7-Flash",
+    "/datalake/datastore1/yang/_hf_models/glm-4-9b-hf",
+    "/datalake/datastore1/yang/_hf_models/glm-4-9b-chat-hf",
     # arabic models
     "inceptionai/jais-13b",
     "inceptionai/jais-13b-chat",
@@ -89,6 +94,33 @@ SUBSETS = [
     "spanish_ca",
     "spanish_cs",
     "spanish_cs_en",
+    "bengali_ca",
+    "bengali_cs",
+    "bengali_cs_en",
+    "dutch_ca",
+    "dutch_cs",
+    "dutch_cs_en",
+    "hebrew_ca",
+    "hebrew_cs",
+    "hebrew_cs_en",
+    "nepali_ca",
+    "nepali_cs",
+    "nepali_cs_en",
+    "persian_ca",
+    "persian_cs",
+    "persian_cs_en",
+    "polish_ca",
+    "polish_cs",
+    "polish_cs_en",
+    "russian_ca",
+    "russian_cs",
+    "russian_cs_en",
+    "telugu_ca",
+    "telugu_cs",
+    "telugu_cs_en",
+    "ukrainian_ca",
+    "ukrainian_cs",
+    "ukrainian_cs_en",
 ]
 
 MODEL_COUNTRY = {
@@ -110,6 +142,11 @@ MODEL_COUNTRY = {
     "Qwen/Qwen2.5-32B-Instruct": "China",
     "deepseek-ai/deepseek-llm-7b-base": "China",
     "deepseek-ai/deepseek-llm-7b-chat": "China",
+    "/datalake/datastore1/yang/_hf_models/DeepSeek-V2-Lite": "China",
+    "/datalake/datastore1/yang/_hf_models/DeepSeek-V2-Lite-Chat": "China",
+    "/datalake/datastore1/yang/_hf_models/GLM-4.7-Flash": "China",
+    "/datalake/datastore1/yang/_hf_models/glm-4-9b-hf": "China",
+    "/datalake/datastore1/yang/_hf_models/glm-4-9b-chat-hf": "China",
     "inceptionai/jais-13b": "UAE",
     "inceptionai/jais-13b-chat": "UAE",
     "inceptionai/Jais-2-8B-Chat": "UAE",
@@ -140,6 +177,7 @@ MODEL_COUNTRY = {
     "CohereLabs/aya-expanse-8b": "Multilingual",
 }
 
-GAP_LANGUAGES = ["chinese", "arabic", "greek", "hindi", "indonesian", "korean", "italic", "french", "japanese", "spanish"]
+GAP_LANGUAGES = ["chinese", "arabic", "greek", "hindi", "indonesian", "korean", "italic", "french", "japanese", "spanish",
+                 "bengali", "dutch", "hebrew", "nepali", "persian", "polish", "russian", "telugu", "ukrainian"]
 
 ALL_METRICS = ["accuracy", "abstain_rate", "conf_err_rate", "cond_acc"]

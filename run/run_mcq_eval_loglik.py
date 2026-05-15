@@ -182,8 +182,8 @@ def build_prompt(row: dict, lang: str = "en", preamble: str | None = None) -> st
 
 
 @torch.inference_mode()
-def evaluate_model(model_id: str, subsets: list[str], batch_size: int, dataset: str, max_samples_per_subset: int | None = None, local_only: bool = False, v3_en: bool = False, v3_cs: bool = False) -> tuple[dict, list]:
-    """Load model, run on all subsets, return (accuracy_by_subset, raw_records)."""
+def evaluate_model(model_id: str, subsets: list[str], batch_size: int, dataset: str, max_samples_per_subset: int | None = None, local_only: bool = False, v3_en: bool = False, v3_cs: bool = False) -> tuple[dict, list, dict]:
+    """Load model, run on all subsets, return (accuracy_by_subset, raw_records, scoring_info)."""
     print(f"\n=== Loading {model_id} ===")
     dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
 
@@ -220,6 +220,7 @@ def evaluate_model(model_id: str, subsets: list[str], batch_size: int, dataset: 
     # Resolve answer token IDs once.
     # Try multiple prefix formats; use the first where every letter is a single token.
     option_ids = {}
+    prefix_used = None
     for prefix in (" ", "", "\n"):
         candidate = {}
         ok = True
@@ -231,6 +232,7 @@ def evaluate_model(model_id: str, subsets: list[str], batch_size: int, dataset: 
             candidate[letter] = ids[0]
         if ok:
             option_ids = candidate
+            prefix_used = prefix
             print(f"  Answer token ids (prefix={prefix!r}): { {l: option_ids[l] for l in ANSWER_LETTERS} }")
             break
     else:
@@ -293,7 +295,8 @@ def evaluate_model(model_id: str, subsets: list[str], batch_size: int, dataset: 
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
         torch.cuda.ipc_collect()
-    return accuracy, raw_records
+    scoring_info = {"prefix_used_for_scoring": prefix_used, "option_ids_used": option_ids}
+    return accuracy, raw_records, scoring_info
 
 
 def model_slug(model_id: str) -> str:
@@ -331,7 +334,7 @@ def main():
     outdir.mkdir(parents=True, exist_ok=True)
 
     for model_id in args.models:
-        accuracy, raw_records = evaluate_model(
+        accuracy, raw_records, scoring_info = evaluate_model(
             model_id, args.subsets, args.batch_size, args.dataset,
             max_samples_per_subset=args.max_samples, local_only=args.local_only,
             v3_en=args.v3_en, v3_cs=args.v3_cs,
@@ -346,7 +349,8 @@ def main():
             existing_acc["accuracy"].update(accuracy)
             accuracy = existing_acc["accuracy"]
         with open(acc_path, "w", encoding="utf-8") as f:
-            json.dump({"model": model_id, "accuracy": accuracy}, f, ensure_ascii=False, indent=2)
+            json.dump({"model": model_id, "accuracy": accuracy, **scoring_info},
+                      f, ensure_ascii=False, indent=2)
         print(f"Saved accuracy to {acc_path}")
 
         # Per-model raw predictions JSON (merge with existing, dedup by subset)
@@ -358,7 +362,8 @@ def main():
             kept = [r for r in existing_raw["predictions"] if r["subset"] not in new_subsets]
             raw_records = kept + raw_records
         with open(raw_path, "w", encoding="utf-8") as f:
-            json.dump({"model": model_id, "predictions": raw_records}, f, ensure_ascii=False, indent=2)
+            json.dump({"model": model_id, **scoring_info, "predictions": raw_records},
+                      f, ensure_ascii=False, indent=2)
         print(f"Saved predictions to {raw_path}")
 
     # Print table

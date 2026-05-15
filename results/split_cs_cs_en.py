@@ -8,8 +8,8 @@ import json
 from pathlib import Path
 
 SRC_DIR = Path(__file__).parent / "cs_filtered_lite_eval_loglik_v1"
-CS_DIR  = Path(__file__).parent / "cs_filtered_lite_eval_loglik_v1/cs_only"
-EN_DIR  = Path(__file__).parent / "cs_filtered_lite_eval_loglik_v1/cs_en_only"
+CS_DIR  = Path(__file__).parent / "cs_filtered_lite_eval_loglik_v1_cs_only"
+EN_DIR  = Path(__file__).parent / "cs_filtered_lite_eval_loglik_v1_cs_en_only"
 
 CS_DIR.mkdir(exist_ok=True)
 EN_DIR.mkdir(exist_ok=True)

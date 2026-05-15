@@ -9,10 +9,13 @@ from pathlib import Path
 
 # ── Data ──────────────────────────────────────────────────────────────────────
 
-CSV_PATH = Path("cs_filtered_lite_eval_loglik_v1/all_results/accuracy_gaps.csv")
+# CSV_PATH = Path("cs_filtered_lite_eval_loglik_v1/all_results/accuracy_gaps.csv")
+CSV_PATH = Path("cs_filtered_lite_eval_loglik_cs_v3/merged/all_results/accuracy_gaps.csv")
 
-LOCALES = ["ZH", "AR", "EL", "HI", "ID", "KO", "IT", "FR", "JA", "ES"]
-LANG_PREFIXES = ["chinese", "arabic", "greek", "hindi", "indonesian", "korean", "italic", "french", "japanese", "spanish"]
+LOCALES = ["ZH", "AR", "EL", "HI", "ID", "KO", "IT", "FR", "JA", "ES",
+           "BN", "NL", "HE", "NE", "FA", "PL", "RU", "TE", "UK"]
+LANG_PREFIXES = ["chinese", "arabic", "greek", "hindi", "indonesian", "korean", "italic", "french", "japanese", "spanish",
+                 "bengali", "dutch", "hebrew", "nepali", "persian", "polish", "russian", "telugu", "ukrainian"]
 
 # Three panels: global_gap, local_gap, knowledge_gap
 PANELS = [
@@ -54,6 +57,11 @@ SHORT_NAMES = {
     "Qwen/Qwen2.5-32B-Instruct":                        "Qwen2.5-32B-IT",
     "deepseek-ai/deepseek-llm-7b-base":                 "DeepSeek-7B",
     "deepseek-ai/deepseek-llm-7b-chat":                 "DeepSeek-7B-Chat",
+    "/datalake/datastore1/yang/_hf_models/DeepSeek-V2-Lite":      "DeepSeek-V2-Lite",
+    "/datalake/datastore1/yang/_hf_models/DeepSeek-V2-Lite-Chat": "DeepSeek-V2-Lite-Chat",
+    "/datalake/datastore1/yang/_hf_models/GLM-4.7-Flash":         "GLM-4.7-Flash",
+    "/datalake/datastore1/yang/_hf_models/glm-4-9b-hf":           "GLM-4-9B",
+    "/datalake/datastore1/yang/_hf_models/glm-4-9b-chat-hf":      "GLM-4-9B-Chat",
     # arabic models
     "inceptionai/jais-13b":                             "Jais-13B",
     "inceptionai/jais-13b-chat":                        "Jais-13B-Chat",
@@ -101,6 +109,14 @@ HOME_LOCALE_LABEL = {
     "Southeast Asian": "ID",
     "South Korea":     "KO",
     "France":          "FR",
+    "Bangladesh":      "BN",
+    "Netherlands":     "NL",
+    "Israel":          "HE",
+    "Nepal":           "NE",
+    "Iran":            "FA",
+    "Poland":          "PL",
+    "Russia":          "RU",
+    "Ukraine":         "UK",
 }
 
 COUNTRY_COLORS = {
@@ -115,6 +131,14 @@ COUNTRY_COLORS = {
     "Italy":           "#CE2B37",
     "Europe":          "#2E86AB",
     "Multilingual":    "#888780",
+    "Bangladesh":      "#006A4E",
+    "Netherlands":     "#FF6F1F",
+    "Israel":          "#7AB7E0",
+    "Nepal":           "#8B0000",
+    "Iran":            "#239F40",
+    "Poland":          "#E2B007",
+    "Russia":          "#A52A2A",
+    "Ukraine":         "#FFD500",
 }
 
 # ── Load & reshape ─────────────────────────────────────────────────────────────
