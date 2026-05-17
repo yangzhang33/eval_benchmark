@@ -1,0 +1,161 @@
+# Project Overview
+
+---
+
+## 📄 Title (working)
+
+**The Masked Advantage: Disentangling Language Proficiency from Cultural Knowledge Access in Multilingual LLMs**
+
+---
+
+## 1️⃣ Motivation
+
+Prior work on multilingual LLMs has reached an apparent contradiction. Studies of cross-lingual factual consistency (Qi et al., 2023; Wendler et al., 2024; Schut et al., 2025) show that LLMs internally pivot through English and that knowledge transfers asymmetrically across languages. Studies of cultural and geographic knowledge (Yin et al., 2022; Liu et al., 2024; Pawar et al., 2025), however, report a counterintuitive finding: for English-centric models, English is often a *better* query language than the local language even for culturally-specific questions — content that is overwhelmingly attested in local-language corpora.
+
+We argue this consensus rests on a measurement confound. Comparing raw accuracy across languages conflates two effects that can pull in opposite directions:
+
+- **Language proficiency**: the model understands one language better than another.
+- **Language-conditioned knowledge access**: localized knowledge is preferentially encoded in or retrievable through a particular language.
+
+When these effects oppose each other, raw accuracy reflects only their net sign. Prior work has been reporting net signs as if they were direct measurements of knowledge access.
+
+This work introduces a controlled framework that decomposes these two effects and applies it across diverse locales and model families. Our central hypothesis is that **a positive local-language knowledge advantage exists consistently across model types, but in English-centric models is masked at the surface by the proficiency penalty.**
+
+The implications are practical as well as scientific: if true, multilingual users may face systematically different — and potentially worse — answers depending on which language they query in, in ways that are invisible to standard accuracy-based evaluation.
+
+---
+
+## 2️⃣ Research Questions
+
+**RQ1 (Decomposition).** Does the local language carry a distinct knowledge advantage for culturally-specific questions once language proficiency is controlled for?
+
+**RQ2 (When does local language win on raw performance?).** Under what conditions — which locales, which model families — does asking in the local language actually yield better cultural performance than asking in English? When the local-language advantage is present in knowledge access but masked by proficiency, when does it become large enough to surface in raw accuracy?
+
+**RQ3 (Robustness across locales and models).** Is the knowledge gap consistent across different cultural and linguistic contexts? Do regional, global, and multilingual models exhibit systematically different patterns?
+
+**RQ4 (Behavior under failure).** When knowledge access fails, does the language of the query shift the balance between abstention and confident error? Does querying in the local language expose users to more confident hallucinations than querying in English on the same underlying knowledge?
+
+---
+
+## 3️⃣ Methodology
+
+### 3.1 Overview
+
+We design a controlled evaluation framework that crosses two factors:
+
+- **Question type**: culture-agnostic (CA) vs. culture-specific (CS).
+- **Query language**: local language vs. English.
+
+This 2×2 design supports a difference-in-differences decomposition: the language effect on CA questions isolates proficiency; the language effect on CS questions captures proficiency plus knowledge access; their contrast isolates knowledge access.
+
+### 3.2 Dataset Construction
+
+For each locale, we construct three subsets:
+
+- **CA (culture-agnostic)**: drawn from Global-MMLU using its CA labels. Provides a baseline for measuring language proficiency on knowledge that does not depend on local context.
+- **CS (culture-specific)**: drawn from native regional MMLU benchmarks (e.g., CMMLU, ArabicMMLU, IndoMMLU, KMMLU). We filter to questions tagged as culture-specific by the original authors, then have annotators verify that each question genuinely requires local knowledge to solve.
+- **CS_EN**: CS questions translated to English via Claude, then human post-edited and back-translation-checked to confirm semantic preservation.
+
+### 3.3 Locales
+
+We cover **19 locales** spanning different resource levels and regions: Chinese, Arabic, Greek, Hindi, Indonesian, Korean, Italian, French, Japanese, Spanish, Bengali, Dutch, Hebrew, Nepali, Persian, Polish, Russian, Telugu, Ukrainian.
+
+This range allows us to study the language-conditioned knowledge effect across:
+- **resource levels**: high-resource (Chinese, French, Spanish, Russian) to low-resource (Telugu, Nepali, Bengali);
+- **scripts**: Latin, Cyrillic, Arabic, Devanagari, Greek, CJK, Hangul, Hebrew, Telugu;
+- **regions**: East Asia, South Asia, Southeast Asia, Middle East, Europe.
+
+### 3.4 Models
+
+Three categories, with the global-model category further crossed by **country of origin** to disentangle "trained primarily on English" from "trained by a US lab":
+
+- **Globally-trained, English-centric**: Llama (US), Mistral (France), Qwen (China), and others. We treat country of origin as a secondary dimension within this category because global models from different countries differ in their multilingual training mix and cultural emphasis even when English dominates.
+- **Regionally-trained**: models built with strong local-language and cultural data (e.g., Jais for Arabic, Sarvam for Hindi, HyperCLOVA-X for Korean, Yi for Chinese).
+- **Multilingual / balanced**: models explicitly optimized for cross-lingual performance (e.g., Aya-Expanse, BLOOMZ).
+
+This three-category design with the country-of-origin sub-axis lets us separate "trained on language X" from "trained in country Y" — two factors that prior work has often conflated.
+
+### 3.5 Scoring and Metrics
+
+We use two complementary scoring approaches, matched to what each metric needs to measure.
+
+**For GlobalGap and LocalGap: direct accuracy difference.** Both are within-component comparisons (CA-local vs. CA-English; CS-local vs. CS-English) where items are identical across the two languages being compared. Direct accuracy differences are straightforward, interpretable, and require no additional modeling.
+
+- **GlobalGap** = Acc(CA, local) − Acc(CA, English) → captures language proficiency.
+- **LocalGap** = Acc(CS, local) − Acc(CS, English) → captures proficiency + knowledge access.
+
+**For KnowledgeGap: Bayesian Continuous Response Model (CRM).** Computing KnowledgeGap as a simple subtraction (LocalGap − GlobalGap) would compare accuracy differences across two disjoint item pools (CA vs. CS) with potentially different inherent difficulty. To correct for this, we estimate the knowledge gap using a Bayesian CRM with a 2PL kernel, fit jointly across all subsets via NUTS. The response variable is the model's softmax probability on the gold option, which preserves the confidence information that binary correctness discards. Item parameters are shared across translations (CS and CS_EN) so the same logical item is anchored within a common scale.
+
+From the joint posterior, we compute the contrast δ between the local-language effect on CS items and the local-language effect on CA items, standardized to account for the separately anchored scales of the two components. We report posterior means, 95% HDIs, and P(δ > 0) directly from the posterior samples. Full specification — likelihood, priors, identifiability strategy, and convergence diagnostics — appears in the appendix.
+
+This split — accuracy differences for the within-component gaps, CRM for the cross-component contrast — keeps the headline GlobalGap and LocalGap numbers simple and interpretable while addressing the CA/CS difficulty mismatch only where it actually matters.
+
+### 3.6 Abstention and Hallucination Analysis (RQ4)
+
+We extend the evaluation with a fifth option, E = "I don't know," and compute per cell:
+
+- **accuracy** = correct / n
+- **abstain rate** = abstained / n
+- **confident error rate** = wrong-without-abstaining / n
+- **conditional accuracy** = correct / (correct + confident wrong)
+
+The key question is whether query language shifts the abstain-versus-confabulate balance — whether English-centric models, queried in the local language on CS questions, produce more confident errors than when queried in English. If so, this is a deployment-relevant finding: multilingual users may face systematically higher rates of confident hallucination on culturally-specific questions, and this rate depends predictably on locale and model type.
+
+---
+
+## 4️⃣ Current Findings
+
+Our preliminary results across the 19 locales and the three model categories support the masked-advantage hypothesis. The three metrics tell a coherent story when read together.
+
+**GlobalGap is uniformly negative.** Across all locales and all model types, models perform better on culture-agnostic questions when queried in English than in the local language. This is the proficiency baseline: even for knowledge that has nothing to do with local culture, English is the stronger query language. The effect is consistent and unambiguous.
+
+**LocalGap is mixed and resource-dependent.** Performance on culture-specific questions, by contrast, varies systematically across locales. **Chinese is the only locale where LocalGap is consistently positive** — that is, querying in Chinese on Chinese cultural questions yields better raw accuracy than translating to English. We attribute this to Chinese being roughly on par with English in training-data scale and quality, which neutralizes the proficiency penalty and lets the local-language knowledge advantage surface in raw accuracy. For most other locales, LocalGap is negative or near zero, with the most negative values appearing for lower-resource locales. Given that CS_EN translations are imperfect, the true negative values are likely somewhat smaller in magnitude than we observe — translation noise inflates the apparent English disadvantage on CS_EN, which means our negative LocalGap estimates are conservative.
+
+**KnowledgeGap is positive across the board.** Once we apply the CRM-based analysis that controls for CA/CS difficulty differences, the knowledge gap δ is positive in nearly every (locale, model) cell, with most of the posterior mass above zero across the 95% credible intervals. This is the central finding: **even when raw cultural performance is worse in the local language, the local language carries a measurable knowledge advantage that is hidden under the proficiency penalty.** The "English is better" appearance in raw accuracy is real at the surface but misleading as a claim about where cultural knowledge is encoded.
+
+Read together, the three results form a clean decomposition:
+
+- **GlobalGap (always negative)** — English wins on proficiency, full stop.
+- **LocalGap (mixed)** — whether English still wins on cultural questions depends on whether the local language has enough resources to overcome its proficiency penalty.
+- **KnowledgeGap (consistently positive)** — the local language has a real knowledge advantage everywhere; we just usually can't see it in raw accuracy because proficiency drags performance down.
+
+Chinese is the natural test case where the proficiency drag is smallest, and it is exactly where the knowledge advantage breaks through to the surface — consistent with the framework's prediction.
+
+---
+
+## 5️⃣ Summary of Approach
+
+This work makes three contributions:
+
+1. **A measurement framework.** A DiD decomposition that separates language proficiency from language-conditioned knowledge access, combining direct accuracy differences for within-component gaps with a Bayesian IRT model for the cross-component knowledge contrast.
+2. **A reframing of an active debate.** We show that the existing "is local language better?" question rests on a confound. By decomposing proficiency from knowledge access, we can ask both (a) whether the local language carries a knowledge advantage across model types — empirically, yes, nearly everywhere — and (b) when this advantage becomes large enough to win in raw performance — empirically, when the local language is resource-rich enough to close the proficiency gap, as Chinese illustrates.
+3. **A deployment-relevant safety finding.** Querying in the local language may systematically increase confident hallucination on culturally-specific questions in English-centric models, with implications for how multilingual LLMs should be evaluated and deployed.
+
+---
+
+## 6️⃣ Next Steps (Beyond Current Scope)
+
+The following extensions strengthen the work but are deferred from the initial submission to keep the scope focused:
+
+**Defending the parallel-trends assumption explicitly.** The CRM partly addresses the CA/CS difficulty mismatch, but reviewers will likely ask for additional defenses. Candidate extensions:
+- Surface-feature matching of CA and CS subsets (length, named-entity density, per-token perplexity).
+- A "neutral-surface" CS subset where answer options contain no language-marked lexical items, ruling out lexical-familiarity explanations.
+- A formal sensitivity analysis quantifying how much the proficiency penalty would have to differ between CA and CS to nullify the knowledge-gap result.
+
+**Predictive analysis of gap magnitude.** Beyond describing the gap, we could regress posterior-mean δ on candidate predictors — training-data share of the local language, linguistic distance from English (lang2vec / WALS), question subdomain, model family — to convert the descriptive finding into a quantitative regularity. This would turn "the gap exists" into "we can predict when and how much," and would also give a formal account of *why* Chinese is currently the only locale where the advantage surfaces in raw accuracy.
+
+**Quantifying translation-quality effects on LocalGap.** Since CS_EN translation noise is likely making our negative LocalGap estimates more negative than they should be, a sensitivity analysis using multiple translation systems or quality-scored subsets would let us bound the true LocalGap and identify whether any additional locales would flip to positive under cleaner translation.
+
+**Mechanistic localization.** Logit-lens and activation-patching experiments (following Wendler et al., Schut et al.) could test whether, in English-centric models, culture-specific knowledge is *retrieved* in intermediate layers under local-language queries but lost in the final language-projection stage. This would give the behavioral finding a representational basis and lift the work from evaluation to mechanism.
+
+**Generation-based evaluation as robustness check.** Replicating the headline result with free-form generation on a subset of items would address known critiques of log-likelihood MCQ scoring (sensitivity to option ordering, surface form bias).
+
+These extensions are natural follow-ups: any one of them could anchor a second paper, and any subset of them can be added during revision if reviewers request stronger evidence on a specific claim.
+
+---
+
+A few notes on how the findings reshape the framing, in case any of this is worth pushing back on:
+
+- The Chinese result is now doing real explanatory work in the paper. It's not just an outlier — it's the predicted special case where the framework's two effects align rather than oppose, so the knowledge advantage surfaces in raw accuracy. I'd highlight this explicitly in the introduction as your "existence proof," because it gives readers a concrete intuition for what the masked advantage looks like when it's unmasked.
+- Worth being honest in the paper that the CS_EN translation noise asymmetrically hurts the English condition (you can't have *exactly* the same item in two languages), which makes your LocalGap a slightly conservative test against the local language. I added a note on this; it actually strengthens the paper because it pre-empts an obvious reviewer objection.
+- The fact that KnowledgeGap is positive nearly everywhere despite LocalGap being mixed is a much cleaner story than I expected — it's exactly the pattern that justifies the methodological apparatus. Without the IRT analysis, you'd just see "LocalGap is mostly negative" and conclude (wrongly, like prior work) that English is better. The CRM is what lets you see through the surface to the actual knowledge effect. Make sure this is foregrounded.

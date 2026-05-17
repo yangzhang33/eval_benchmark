@@ -53,24 +53,24 @@ PROMPT_LANG = {
 
 # Maps subset prefix to prompt language (only for native-language subsets)
 SUBSET_LANG_MAP = {
-    "chinese": "zh",
-    "arabic": "ar",
-    "greek": "el",
-    "hindi": "hi",
+    "chinese": "zh", # he xiao
+    "arabic": "ar", # he amr
+    "greek": "el", # he mersin
+    "hindi": "hi", # he student m
     "indonesian": "id",
     "korean": "ko",
     "italic": "it",
-    "french": "fr",
-    "japanese": "ja",
-    "spanish": "es",
+    "french": "fr", 
+    "japanese": "ja", # wait
+    "spanish": "es", # he sofia
     "bengali": "bn",
-    "dutch": "nl",
+    "dutch": "nl", # wait
     "hebrew": "he",
     "nepali": "ne",
     "persian": "fa",
     "polish": "pl",
-    "russian": "ru",
-    "telugu": "te",
+    "russian": "ru", # he fedor
+    "telugu": "te", # he
     "ukrainian": "uk",
 }
 
@@ -217,11 +217,11 @@ def evaluate_model(model_id: str, subsets: list[str], batch_size: int, dataset: 
     use_num_logits_to_keep = "num_logits_to_keep" in inspect.signature(model.forward).parameters
     supports_use_cache = "use_cache" in inspect.signature(model.forward).parameters
 
-    # Resolve answer token IDs once.
-    # Try multiple prefix formats; use the first where every letter is a single token.
-    option_ids = {}
-    prefix_used = None
-    for prefix in (" ", "", "\n"):
+    # Resolve answer token IDs for each prefix variant that works.
+    # A prefix "works" if every letter A/B/C/D encodes to a single token under it.
+    # Models where both " A" and "A" are single tokens get 8 variants; others get 4.
+    option_ids_by_prefix: dict[str, dict[str, int]] = {}
+    for prefix in (" ", ""):
         candidate = {}
         ok = True
         for letter in ANSWER_LETTERS:
@@ -231,16 +231,27 @@ def evaluate_model(model_id: str, subsets: list[str], batch_size: int, dataset: 
                 break
             candidate[letter] = ids[0]
         if ok:
-            option_ids = candidate
-            prefix_used = prefix
-            print(f"  Answer token ids (prefix={prefix!r}): { {l: option_ids[l] for l in ANSWER_LETTERS} }")
-            break
-    else:
+            option_ids_by_prefix[prefix] = candidate
+
+    if not option_ids_by_prefix:
         raise ValueError(
             f"No single-token representation found for answer letters for {model_id}."
         )
 
+    # Flat list of (prefix, letter, token_id) — up to 8 entries.
+    option_variants = [
+        (prefix, letter, tid)
+        for prefix, ids in option_ids_by_prefix.items()
+        for letter, tid in ids.items()
+    ]
+    print(f"  Working prefixes: {list(option_ids_by_prefix.keys())}  "
+          f"({len(option_variants)} answer tokens)")
+    for prefix, ids in option_ids_by_prefix.items():
+        print(f"    prefix={prefix!r}: { {l: ids[l] for l in ANSWER_LETTERS} }")
+
     accuracy = {}
+    top1_rates = {}
+    top5_rates = {}
     raw_records = []
     for subset in subsets:
         print(f"  Subset: {subset}", flush=True)
@@ -266,18 +277,35 @@ def evaluate_model(model_id: str, subsets: list[str], batch_size: int, dataset: 
             else:
                 last_logits = model(**enc, **forward_kwargs).logits[:, -1, :]
             log_probs = F.log_softmax(last_logits, dim=-1)  # (B, vocab)
+            top5 = torch.topk(log_probs, k=5, dim=-1).indices  # (B, 5)
 
             for b in range(len(batch)):
-                scores = {l: log_probs[b, tid].item() for l, tid in option_ids.items()}
-                pred = max(scores, key=scores.get)
-                preds.append(pred)
-                all_scores.append(scores)
+                # (prefix, letter, tid, lp) for every variant
+                variant_data = [
+                    (prefix, letter, tid, log_probs[b, tid].item())
+                    for prefix, letter, tid in option_variants
+                ]
+                # Nested dict for JSON output
+                variant_logps: dict[str, dict[str, float]] = {}
+                for prefix, letter, _, lp in variant_data:
+                    variant_logps.setdefault(prefix, {})[letter] = lp
+                # argmax over all variants -> picks both prefix and letter
+                chosen_prefix, pred_letter, chosen_tid, _ = max(variant_data, key=lambda v: v[3])
+                top5_ids = [int(t) for t in top5[b].tolist()]
+                preds.append(pred_letter)
+                all_scores.append({
+                    "log_probs": variant_logps,
+                    "argmax_prefix": chosen_prefix,
+                    "argmax_token_id": int(chosen_tid),
+                    "argmax_is_top1": top5_ids[0] == int(chosen_tid),
+                    "argmax_is_top5": int(chosen_tid) in top5_ids,
+                })
 
-        for row, prompt, scores, pred, gold_ans in zip(ds, prompts, all_scores, preds, gold):
+        for row, prompt, info, pred, gold_ans in zip(ds, prompts, all_scores, preds, gold):
             raw_records.append({
                 "subset": subset,
                 "prompt": prompt,
-                "log_probs": scores,
+                **info,
                 "extracted_answer": pred,
                 "gold_answer": gold_ans,
                 "correct": pred == gold_ans,
@@ -286,8 +314,14 @@ def evaluate_model(model_id: str, subsets: list[str], batch_size: int, dataset: 
 
         correct = sum(p == g for p, g in zip(preds, gold))
         acc = correct / len(gold) if gold else 0.0
+        n = len(gold) or 1
+        top1_rate = sum(s["argmax_is_top1"] for s in all_scores) / n
+        top5_rate = sum(s["argmax_is_top5"] for s in all_scores) / n
         accuracy[subset] = round(acc, 4)
-        print(f"    acc = {acc:.4f}  ({correct}/{len(gold)})")
+        top1_rates[subset] = round(top1_rate, 4)
+        top5_rates[subset] = round(top5_rate, 4)
+        print(f"    acc = {acc:.4f}  argmax_is_top1 = {top1_rate:.2%}  "
+              f"argmax_is_top5 = {top5_rate:.2%}  ({correct}/{len(gold)})")
 
     del model
     del tok
@@ -295,7 +329,11 @@ def evaluate_model(model_id: str, subsets: list[str], batch_size: int, dataset: 
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
         torch.cuda.ipc_collect()
-    scoring_info = {"prefix_used_for_scoring": prefix_used, "option_ids_used": option_ids}
+    scoring_info = {
+        "option_ids_by_prefix": option_ids_by_prefix,
+        "argmax_is_top1_rate": top1_rates,
+        "argmax_is_top5_rate": top5_rates,
+    }
     return accuracy, raw_records, scoring_info
 
 
@@ -341,13 +379,18 @@ def main():
         )
         slug = model_slug(model_id)
 
-        # Per-model accuracy JSON (merge with existing)
+        # Per-model accuracy JSON (merge per-subset dicts with existing)
         acc_path = outdir / f"{slug}_accuracy.json"
         if acc_path.exists():
             with open(acc_path, encoding="utf-8") as f:
                 existing_acc = json.load(f)
             existing_acc["accuracy"].update(accuracy)
             accuracy = existing_acc["accuracy"]
+            for key in ("argmax_is_top1_rate", "argmax_is_top5_rate"):
+                if key in existing_acc:
+                    merged = dict(existing_acc[key])
+                    merged.update(scoring_info[key])
+                    scoring_info[key] = merged
         with open(acc_path, "w", encoding="utf-8") as f:
             json.dump({"model": model_id, "accuracy": accuracy, **scoring_info},
                       f, ensure_ascii=False, indent=2)
