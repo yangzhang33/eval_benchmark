@@ -8,9 +8,9 @@ Instead of generating text, computes the log-probability of each answer token
 This works uniformly for base and instruct models without any special formatting.
 
 Usage:
-  python run_mcq_eval_loglik_5.py --outdir results
-  python run_mcq_eval_loglik_5.py --models Qwen/Qwen2.5-7B --outdir results
+  python run_mcq_eval_loglik_5.py --outdir results --models Qwen/Qwen2.5-7B --subsets chinese_cs chinese_cs_en
 """
+import argparse
 import inspect
 import json
 import gc
@@ -20,111 +20,6 @@ import torch
 import torch.nn.functional as F
 from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM, Mistral3ForConditionalGeneration, MistralCommonBackend
-
-DATASET = "yangzhang33/culture-eval-benchmark-cs-filtered-lite"
-OUTDIR_cs = "../results/cs_filtered_lite_eval_loglik_v1_5"
-OUTDIR_ca = "../results/ca_loglik_v1_5/ca_results"
-
-CA_MODE = False
-BATCH_SIZE = 1
-MAX_SAMPLES_PER_SUBSET = None
-LOCAL_ONLY = True
-
-SUBSETS_cs = [
-    "chinese_cs", "chinese_cs_en",
-    "arabic_cs", "arabic_cs_en",
-    "greek_cs", "greek_cs_en",
-    "hindi_cs", "hindi_cs_en",
-    "indonesian_cs", "indonesian_cs_en",
-    "korean_cs", "korean_cs_en",
-    # "italic_cs", "italic_cs_en",
-    "french_cs", "french_cs_en",
-    "japanese_cs", "japanese_cs_en",
-    "spanish_cs", "spanish_cs_en",
-]
-
-SUBSETS_ca = [
-    "english_ca",
-    "chinese_ca",
-    "arabic_ca",
-    "greek_ca",
-    "hindi_ca",
-    "indonesian_ca",
-    "korean_ca",
-    # "italic_ca",
-    "french_ca",
-    "japanese_ca",
-    "spanish_ca",
-]
-
-
-if CA_MODE:
-    OUTDIR = OUTDIR_ca
-    SUBSETS = SUBSETS_ca
-else:
-    OUTDIR = OUTDIR_cs
-    SUBSETS = SUBSETS_cs
-
-
-MODELS = [
-    # chinese models
-    # "Qwen/Qwen2.5-7B",
-    # "Qwen/Qwen2.5-7B-Instruct",
-    "Qwen/Qwen2.5-14B",
-    "Qwen/Qwen2.5-14B-Instruct",
-    "Qwen/Qwen2.5-32B",
-    "Qwen/Qwen2.5-32B-Instruct",
-    # "deepseek-ai/deepseek-llm-7b-base",
-    # "deepseek-ai/deepseek-llm-7b-chat",
-    # #english models
-    # "meta-llama/Meta-Llama-3.1-8B",
-    # "meta-llama/Llama-3.1-8B-Instruct",
-    # "google/gemma-2-9b",
-    # "google/gemma-2-9b-it",
-
-
-
-
-    # "google/gemma-2-27b",
-
-    # "google/gemma-2-27b-it", #oom
-    # "google/gemma-3-12b-pt",
-    # "google/gemma-3-12b-it",
-    # "google/gemma-3-27b-pt", # oom
-    # "google/gemma-3-27b-it", # oom
-
-
-
-    # #greek models
-    # "ilsp/Llama-Krikri-8B-Instruct",
-    # "ilsp/Meltemi-7B-Instruct-v1.5",
-    # # arabic models
-    # # "inceptionai/jais-13b", # not done
-    # # "inceptionai/jais-13b-chat", # not done
-    # "inceptionai/Jais-2-8B-Chat",
-    # "FreedomIntelligence/AceGPT-v2-8B",
-    # "FreedomIntelligence/AceGPT-v2-8B-Chat",
-    # #hindi models
-    # "sarvamai/OpenHathi-7B-Hi-v0.1-Base",
-    # # "krutrim-ai-labs/Krutrim-1-instruct", # not done
-    # # southeast asian models
-    # "aisingapore/Llama-SEA-LION-v3-8B",
-    # "aisingapore/Llama-SEA-LION-v3-8B-IT",
-    # "SeaLLMs/SeaLLM-7B-v2.5", # instruct
-    # "SeaLLMs/SeaLLMs-v3-7B",
-    # "SeaLLMs/SeaLLMs-v3-7B-Chat",
-    # # korean models
-    # # "naver-hyperclovax/HyperCLOVAX-SEED-Omni-8B" #instruct not done
-    # "beomi/Llama-3-Open-Ko-8B",
-    # "EleutherAI/polyglot-ko-12.8b",
-    # "EleutherAI/polyglot-ko-5.8b",
-    # # multilingual models
-    # "CohereLabs/aya-expanse-8b",  #instruct
-    # # mistral models
-    # # "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Base-2512",
-    # # "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Instruct-2512",
-    # # "/datalake/datastore1/yang/_hf_models/Lucie-7B",
-]
 
 MISTRAL3_MODELS = {
     "mistralai/Ministral-3-8B-Base-2512",
@@ -146,6 +41,15 @@ PROMPT_LANG = {
     "ja": ("質問：", "回答：", "わかりません"),
     "es": ("Pregunta: ", "Respuesta:", "No lo sé"),
     "en": ("Question: ", "Answer:", "I don't know"),
+    "bn": ("প্রশ্ন: ", "উত্তর:", "আমি জানি না"),
+    "nl": ("Vraag: ", "Antwoord:", "Ik weet het niet"),
+    "he": ("שאלה: ", "תשובה:", "אני לא יודע"),
+    "ne": ("प्रश्न: ", "उत्तर:", "मलाई थाहा छैन"),
+    "fa": ("سؤال: ", "جواب:", "نمی‌دانم"),
+    "pl": ("Pytanie: ", "Odpowiedź:", "Nie wiem"),
+    "ru": ("Вопрос: ", "Ответ:", "Я не знаю"),
+    "te": ("ప్రశ్న: ", "సమాధానం:", "నాకు తెలియదు"),
+    "uk": ("Питання: ", "Відповідь:", "Я не знаю"),
 }
 
 # Maps subset prefix to prompt language (only for native-language subsets)
@@ -160,6 +64,15 @@ SUBSET_LANG_MAP = {
     "french": "fr",
     "japanese": "ja",
     "spanish": "es",
+    "bengali": "bn",
+    "dutch": "nl",
+    "hebrew": "he",
+    "nepali": "ne",
+    "persian": "fa",
+    "polish": "pl",
+    "russian": "ru",
+    "telugu": "te",
+    "ukrainian": "uk",
 }
 
 ANSWER_LETTERS = ["A", "B", "C", "D", "E"]
@@ -168,14 +81,20 @@ ANSWER_LETTERS = ["A", "B", "C", "D", "E"]
 def subset_lang(subset: str) -> str:
     """Infer prompt language from subset name.
 
-    - language_ca  -> native language
-    - language_cs  -> native language
+    - english_ca     -> English
+    - language_ca    -> native language (must be in SUBSET_LANG_MAP)
+    - language_cs    -> native language (must be in SUBSET_LANG_MAP)
     - language_cs_en -> English
     """
+    if subset.endswith("_cs_en") or subset == "english_ca":
+        return "en"
     for prefix, lang in SUBSET_LANG_MAP.items():
         if subset.startswith(prefix) and (subset.endswith("_ca") or subset.endswith("_cs")):
             return lang
-    return "en"
+    raise ValueError(
+        f"Subset '{subset}' is not '_cs_en' or 'english_ca', and its prefix is not in "
+        f"SUBSET_LANG_MAP. Add an entry or check the subset name."
+    )
 
 
 def build_prompt(row: dict, lang: str = "en") -> str:
@@ -192,7 +111,7 @@ def build_prompt(row: dict, lang: str = "en") -> str:
 
 
 @torch.inference_mode()
-def evaluate_model(model_id: str, subsets: list[str], batch_size: int, max_samples_per_subset: int | None = None, local_only: bool = False) -> tuple[dict, dict, dict, dict, list]:
+def evaluate_model(model_id: str, subsets: list[str], batch_size: int, dataset: str, max_samples_per_subset: int | None = None, local_only: bool = False) -> tuple[dict, dict, dict, dict, list]:
     """Load model, run on all subsets, return (accuracy, abstain_rates, conf_err_rates, cond_accs, raw_records)."""
     print(f"\n=== Loading {model_id} ===")
     dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
@@ -255,7 +174,7 @@ def evaluate_model(model_id: str, subsets: list[str], batch_size: int, max_sampl
     raw_records = []
     for subset in subsets:
         print(f"  Subset: {subset}", flush=True)
-        ds = load_dataset(DATASET, subset, split="test")
+        ds = load_dataset(dataset, subset, split="test")
         if max_samples_per_subset is not None:
             ds = ds.select(range(min(max_samples_per_subset, len(ds))))
         lang = subset_lang(subset)
@@ -326,24 +245,39 @@ def model_slug(model_id: str) -> str:
 
 
 def main():
-    _ds = DATASET.split("/")[-1]
+    parser = argparse.ArgumentParser(
+        description="MCQ eval via log-likelihood scoring with an 'I don't know' option E"
+    )
+    parser.add_argument("--dataset", default="yangzhang33/culture-eval-benchmark-cs-filtered-lite")
+    parser.add_argument("--outdir", required=True)
+    parser.add_argument("--batch-size", type=int, default=4)
+    parser.add_argument("--max-samples", type=int, default=None)
+    parser.add_argument("--local-only", action="store_true")
+    parser.add_argument("--models", nargs="*", default=[], metavar="MODEL")
+    parser.add_argument("--subsets", nargs="+", required=True, metavar="SUBSET")
+    args = parser.parse_args()
+
+    if not args.models:
+        print("No models specified, nothing to do.")
+        return
+
+    _ds = args.dataset.split("/")[-1]
     if _ds == "culture-eval-benchmark-cs-filtered-lite":
-        assert "v1" in OUTDIR, (
-            f"DATASET is '{_ds}' but OUTDIR '{OUTDIR}' does not contain 'v1'. "
-            "Please set OUTDIR to a path containing 'v1'."
+        assert "v1" in args.outdir, (
+            f"DATASET is '{_ds}' but --outdir '{args.outdir}' does not contain 'v1'."
         )
     elif _ds == "culture-eval-benchmark-cs-filtered-lite-human-filtered":
-        assert "v2" in OUTDIR, (
-            f"DATASET is '{_ds}' but OUTDIR '{OUTDIR}' does not contain 'v2'. "
-            "Please set OUTDIR to a path containing 'v2'."
+        assert "v2" in args.outdir, (
+            f"DATASET is '{_ds}' but --outdir '{args.outdir}' does not contain 'v2'."
         )
 
-    outdir = Path(OUTDIR)
+    outdir = Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
 
-    for model_id in MODELS:
+    for model_id in args.models:
         accuracy, abstain_rates, conf_err_rates, cond_accs, raw_records = evaluate_model(
-            model_id, SUBSETS, BATCH_SIZE, MAX_SAMPLES_PER_SUBSET, local_only=LOCAL_ONLY
+            model_id, args.subsets, args.batch_size, args.dataset,
+            max_samples_per_subset=args.max_samples, local_only=args.local_only,
         )
         slug = model_slug(model_id)
 
@@ -388,7 +322,7 @@ def main():
     # Print table
     print(f"\n{'Model':<45} {'Subset':<20} {'Acc':>7} {'Abstain':>8} {'ConfErr':>8} {'CondAcc':>8}")
     print("-" * 100)
-    for model_id in MODELS:
+    for model_id in args.models:
         slug = model_slug(model_id)
         acc_path = outdir / f"{slug}_accuracy.json"
         with open(acc_path, encoding="utf-8") as f:

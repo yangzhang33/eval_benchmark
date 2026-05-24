@@ -28,15 +28,15 @@ from util.results_pipeline import add_hall_gaps, collect, compute_gaps, filter_l
 RUN_GENERATE = True
 
 # Folder containing *_accuracy.json files
-# RESULTS_DIR = "results/cs_filtered_lite_eval_loglik_v1"
-RESULTS_DIR = "results/cs_filtered_lite_eval_loglik_cs_v3/merged"
+RESULTS_DIR = "results/aresult_paper/cs_filtered_lite_eval_loglik_v1_8_tokens_cultural"
+# RESULTS_DIR = "results/cs_filtered_lite_eval_loglik_cs_v3/merged"
 # Folder to write output CSVs into (will be created if it doesn't exist)
-# OUTPUT_DIR = "results/cs_filtered_lite_eval_loglik_v1/all_results"
-OUTPUT_DIR = "results/cs_filtered_lite_eval_loglik_cs_v3/merged/all_results"
+OUTPUT_DIR = "results/aresult_paper/cs_filtered_lite_eval_loglik_v1_8_tokens_cultural/all_results"
+# OUTPUT_DIR = "results/cs_filtered_lite_eval_loglik_cs_v3/merged/all_results"
 
 # Folder containing *_accuracy.json files with only _ca keys.
 # Set to None if _ca data is already included in RESULTS_DIR files.
-CA_DIR = "results/ca_loglik_v1/ca_results"
+CA_DIR = "results/aresult_paper/ca_loglik_v1_8_tokens/ca_results"
 
 # Metric(s) to extract — any subset of:
 #   "accuracy", "abstain_rate", "conf_err_rate", "cond_acc"
@@ -55,8 +55,8 @@ NO_FILTER = False
 RUN_PROCESS = True
 
 # Direct path to the input accuracy CSV; its parent folder is used as input/output dir.
-# PROCESS_INPUT_CSV = "results/cs_filtered_lite_eval_loglik_v1/all_results/accuracy.csv"
-PROCESS_INPUT_CSV = "results/cs_filtered_lite_eval_loglik_cs_v3/merged/all_results/accuracy.csv"
+PROCESS_INPUT_CSV = "results/aresult_paper/cs_filtered_lite_eval_loglik_v1_8_tokens_cultural/all_results/accuracy.csv"
+# PROCESS_INPUT_CSV = "results/cs_filtered_lite_eval_loglik_cs_v3/merged/all_results/accuracy.csv"
 
 PROCESS_INPUT_DIR = os.path.dirname(PROCESS_INPUT_CSV)
 

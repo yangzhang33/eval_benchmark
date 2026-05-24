@@ -6,4 +6,9 @@ __pycache__/
 *.pyc
 .history/
 .DS_Store
+/run/run_mcq_eval_claude.py
+/run/run_mcq_eval_openai.py
 /test/results
+/human_evaluation
+/paper_writting
+/human_evaluation

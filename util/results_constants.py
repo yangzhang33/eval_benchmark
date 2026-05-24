@@ -1,16 +1,54 @@
 MODELS = [
-    # english models
+    # ── english models ────────────────────────────────────────────────────────
     "meta-llama/Meta-Llama-3.1-8B",
     "meta-llama/Llama-3.1-8B-Instruct",
+    "meta-llama/Llama-3.1-70B",
+    "meta-llama/Llama-3.1-70B-Instruct",
+    "/datalake/datastore1/yang/_hf_models/Llama-3.2-1B",
+    "/datalake/datastore1/yang/_hf_models/Llama-3.2-1B-Instruct",
+    "/datalake/datastore1/yang/_hf_models/Llama-3.2-3B",
+    "/datalake/datastore1/yang/_hf_models/Llama-3.2-3B-Instruct",
     "google/gemma-2-9b",
     "google/gemma-2-9b-it",
     "google/gemma-2-27b",
     "google/gemma-2-27b-it",
+    "/datalake/datastore1/yang/_hf_models/gemma-3-270m",
+    "/datalake/datastore1/yang/_hf_models/gemma-3-270m-it",
+    "/datalake/datastore1/yang/_hf_models/gemma-3-1b-pt",
+    "/datalake/datastore1/yang/_hf_models/gemma-3-1b-it",
+    "/datalake/datastore1/yang/_hf_models/gemma-3-4b-pt",
+    "/datalake/datastore1/yang/_hf_models/gemma-3-4b-it",
     "google/gemma-3-12b-pt",
     "google/gemma-3-12b-it",
     "google/gemma-3-27b-pt",
     "google/gemma-3-27b-it",
-    # chinese models
+    "/datalake/datastore1/yang/_hf_models/gemma-4-E2B",
+    "/datalake/datastore1/yang/_hf_models/gemma-4-E2B-it",
+    "/datalake/datastore1/yang/_hf_models/gemma-4-E4B",
+    "/datalake/datastore1/yang/_hf_models/gemma-4-E4B-it",
+    "google/gemma-4-26B-A4B",
+    "google/gemma-4-26B-A4B-it",
+    "google/gemma-4-31B",
+    "google/gemma-4-31B-it",
+    # ── chinese models ────────────────────────────────────────────────────────
+    "/datalake/datastore1/yang/_hf_models/Qwen3-0.6B",
+    "/datalake/datastore1/yang/_hf_models/Qwen3-1.7B",
+    "/datalake/datastore1/yang/_hf_models/Qwen3-4B",
+    "/datalake/datastore1/yang/_hf_models/Qwen3-4B-Instruct-2507",
+    "Qwen/Qwen3-14B",
+    "Qwen/Qwen3-30B-A3B",
+    "Qwen/Qwen3-30B-A3B-Instruct-2507",
+    "/datalake/datastore1/yang/_hf_models/Qwen3.5-0.8B-Base",
+    "/datalake/datastore1/yang/_hf_models/Qwen3.5-0.8B",
+    "/datalake/datastore1/yang/_hf_models/Qwen3.5-2B-Base",
+    "/datalake/datastore1/yang/_hf_models/Qwen3.5-2B",
+    "/datalake/datastore1/yang/_hf_models/Qwen3.5-4B-Base",
+    "/datalake/datastore1/yang/_hf_models/Qwen3.5-4B",
+    "/datalake/datastore1/yang/_hf_models/Qwen3.5-9B-Base",
+    "/datalake/datastore1/yang/_hf_models/Qwen3.5-9B",
+    "Qwen/Qwen3.5-27B",
+    "Qwen/Qwen3.5-35B-A3B-Base",
+    "Qwen/Qwen3.5-35B-A3B",
     "Qwen/Qwen2.5-7B",
     "Qwen/Qwen2.5-7B-Instruct",
     "Qwen/Qwen2.5-14B",
@@ -21,45 +59,76 @@ MODELS = [
     "deepseek-ai/deepseek-llm-7b-chat",
     "/datalake/datastore1/yang/_hf_models/DeepSeek-V2-Lite",
     "/datalake/datastore1/yang/_hf_models/DeepSeek-V2-Lite-Chat",
-    "/datalake/datastore1/yang/_hf_models/GLM-4.7-Flash",
     "/datalake/datastore1/yang/_hf_models/glm-4-9b-hf",
     "/datalake/datastore1/yang/_hf_models/glm-4-9b-chat-hf",
-    # arabic models
+    "/datalake/datastore1/yang/_hf_models/GLM-4.7-Flash",
+    # ── arabic models ─────────────────────────────────────────────────────────
     "inceptionai/jais-13b",
     "inceptionai/jais-13b-chat",
     "inceptionai/Jais-2-8B-Chat",
+    "inceptionai/Jais-2-70B-Chat",
     "FreedomIntelligence/AceGPT-v2-8B",
     "FreedomIntelligence/AceGPT-v2-8B-Chat",
-    # mistral models
+    "QCRI/Fanar-2-27B-Instruct",
+    # ── mistral / french models ───────────────────────────────────────────────
     "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Base-2512",
     "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Instruct-2512",
+    "mistralai/Ministral-3-3B-Base-2512",
+    "mistralai/Ministral-3-3B-Instruct-2512",
+    "mistralai/Ministral-3-8B-Base-2512",
+    "mistralai/Ministral-3-8B-Instruct-2512",
+    "mistralai/Ministral-3-14B-Base-2512",
+    "mistralai/Ministral-3-14B-Instruct-2512",
+    "mistralai/Mistral-Medium-3.5-128B",
+    "mistralai/Mistral-Small-4-119B-2603",
     "/datalake/datastore1/yang/_hf_models/Lucie-7B",
-    # european models
+    "/datalake/datastore1/yang/_hf_models/Gaperon-1125-8B",
+    "/datalake/datastore1/yang/_hf_models/Gaperon-1125-8B-SFT",
+    "/datalake/datastore1/yang/_hf_models/Gaperon-1125-24B",
+    "/datalake/datastore1/yang/_hf_models/Gaperon-1125-24B-SFT",
+    # ── european models ───────────────────────────────────────────────────────
     "/datalake/datastore1/yang/_hf_models/EuroLLM-9B-2512",
     "/datalake/datastore1/yang/_hf_models/EuroLLM-9B-Instruct-2512",
     "/datalake/datastore1/yang/_hf_models/EuroLLM-22B-2512",
     "/datalake/datastore1/yang/_hf_models/EuroLLM-22B-Instruct-2512",
     "/datalake/datastore1/yang/_hf_models/Teuken-7B-base-v0.6",
     "/datalake/datastore1/yang/_hf_models/Teuken-7B-instruct-v0.6",
-    # greek models
+    # ── greek models ──────────────────────────────────────────────────────────
     "ilsp/Llama-Krikri-8B-Instruct",
     "ilsp/Meltemi-7B-Instruct-v1.5",
-    # hindi models
+    "/datalake/datastore1/yang/_hf_models/Minerva-7B-base-v1.0",
+    # ── hindi models ──────────────────────────────────────────────────────────
     "sarvamai/OpenHathi-7B-Hi-v0.1-Base",
     "krutrim-ai-labs/Krutrim-1-instruct",
-    # southeast asian models
+    # ── southeast asian models ────────────────────────────────────────────────
     "aisingapore/Llama-SEA-LION-v3-8B",
     "aisingapore/Llama-SEA-LION-v3-8B-IT",
     "SeaLLMs/SeaLLM-7B-v2.5",
     "SeaLLMs/SeaLLMs-v3-7B",
     "SeaLLMs/SeaLLMs-v3-7B-Chat",
-    # korean models
+    # ── korean models ─────────────────────────────────────────────────────────
     "naver-hyperclovax/HyperCLOVAX-SEED-Omni-8B",
     "beomi/Llama-3-Open-Ko-8B",
-    "EleutherAI/polyglot-ko-12.8b",
     "EleutherAI/polyglot-ko-5.8b",
-    # multilingual models
+    "EleutherAI/polyglot-ko-12.8b",
+    "/datalake/datastore1/yang/_hf_models/KORMo-10B-base",
+    "/datalake/datastore1/yang/_hf_models/KORMo-10B-sft",
+    # ── italian models ────────────────────────────────────────────────────────
+    "/datalake/datastore1/yang/_hf_models/LLaMAntino-3-ANITA-8B-Inst-DPO-ITA",
+    # ── persian models ────────────────────────────────────────────────────────
+    "/datalake/datastore1/yang/_hf_models/PersianMind-v1.0",
+    # ── japanese models ───────────────────────────────────────────────────────
+    "/datalake/datastore1/yang/_hf_models/Qwen3-Swallow-8B-CPT-v0.2",
+    "/datalake/datastore1/yang/_hf_models/Qwen3-Swallow-8B-SFT-v0.2",
+    # ── polish models ─────────────────────────────────────────────────────────
+    "/datalake/datastore1/yang/_hf_models/Bielik-Minitron-7B-v3.0-Instruct",
+    "/datalake/datastore1/yang/_hf_models/Bielik-11B-v3-Base-20250730",
+    # ── multilingual models ───────────────────────────────────────────────────
     "CohereLabs/aya-expanse-8b",
+    # ── api models ────────────────────────────────────────────────────────────
+    "gemini-3-flash-preview",
+    "gpt-5.4-mini-2026-03-17",
+    "gpt-5.4-2026-03-05"
 ]
 
 SUBSETS = [
@@ -124,16 +193,56 @@ SUBSETS = [
 ]
 
 MODEL_COUNTRY = {
+    # ── english models ────────────────────────────────────────────────────────
     "meta-llama/Meta-Llama-3.1-8B": "USA",
     "meta-llama/Llama-3.1-8B-Instruct": "USA",
+    "meta-llama/Llama-3.1-70B": "USA",
+    "meta-llama/Llama-3.1-70B-Instruct": "USA",
+    "/datalake/datastore1/yang/_hf_models/Llama-3.2-1B": "USA",
+    "/datalake/datastore1/yang/_hf_models/Llama-3.2-1B-Instruct": "USA",
+    "/datalake/datastore1/yang/_hf_models/Llama-3.2-3B": "USA",
+    "/datalake/datastore1/yang/_hf_models/Llama-3.2-3B-Instruct": "USA",
     "google/gemma-2-9b": "USA",
     "google/gemma-2-9b-it": "USA",
     "google/gemma-2-27b": "USA",
     "google/gemma-2-27b-it": "USA",
+    "/datalake/datastore1/yang/_hf_models/gemma-3-270m": "USA",
+    "/datalake/datastore1/yang/_hf_models/gemma-3-270m-it": "USA",
+    "/datalake/datastore1/yang/_hf_models/gemma-3-1b-pt": "USA",
+    "/datalake/datastore1/yang/_hf_models/gemma-3-1b-it": "USA",
+    "/datalake/datastore1/yang/_hf_models/gemma-3-4b-pt": "USA",
+    "/datalake/datastore1/yang/_hf_models/gemma-3-4b-it": "USA",
     "google/gemma-3-12b-pt": "USA",
     "google/gemma-3-12b-it": "USA",
     "google/gemma-3-27b-pt": "USA",
     "google/gemma-3-27b-it": "USA",
+    "/datalake/datastore1/yang/_hf_models/gemma-4-E2B": "USA",
+    "/datalake/datastore1/yang/_hf_models/gemma-4-E2B-it": "USA",
+    "/datalake/datastore1/yang/_hf_models/gemma-4-E4B": "USA",
+    "/datalake/datastore1/yang/_hf_models/gemma-4-E4B-it": "USA",
+    "google/gemma-4-26B-A4B": "USA",
+    "google/gemma-4-26B-A4B-it": "USA",
+    "google/gemma-4-31B": "USA",
+    "google/gemma-4-31B-it": "USA",
+    # ── chinese models ────────────────────────────────────────────────────────
+    "/datalake/datastore1/yang/_hf_models/Qwen3-0.6B": "China",
+    "/datalake/datastore1/yang/_hf_models/Qwen3-1.7B": "China",
+    "/datalake/datastore1/yang/_hf_models/Qwen3-4B": "China",
+    "/datalake/datastore1/yang/_hf_models/Qwen3-4B-Instruct-2507": "China",
+    "Qwen/Qwen3-14B": "China",
+    "Qwen/Qwen3-30B-A3B": "China",
+    "Qwen/Qwen3-30B-A3B-Instruct-2507": "China",
+    "/datalake/datastore1/yang/_hf_models/Qwen3.5-0.8B-Base": "China",
+    "/datalake/datastore1/yang/_hf_models/Qwen3.5-0.8B": "China",
+    "/datalake/datastore1/yang/_hf_models/Qwen3.5-2B-Base": "China",
+    "/datalake/datastore1/yang/_hf_models/Qwen3.5-2B": "China",
+    "/datalake/datastore1/yang/_hf_models/Qwen3.5-4B-Base": "China",
+    "/datalake/datastore1/yang/_hf_models/Qwen3.5-4B": "China",
+    "/datalake/datastore1/yang/_hf_models/Qwen3.5-9B-Base": "China",
+    "/datalake/datastore1/yang/_hf_models/Qwen3.5-9B": "China",
+    "Qwen/Qwen3.5-27B": "China",
+    "Qwen/Qwen3.5-35B-A3B-Base": "China",
+    "Qwen/Qwen3.5-35B-A3B": "China",
     "Qwen/Qwen2.5-7B": "China",
     "Qwen/Qwen2.5-7B-Instruct": "China",
     "Qwen/Qwen2.5-14B": "China",
@@ -144,40 +253,82 @@ MODEL_COUNTRY = {
     "deepseek-ai/deepseek-llm-7b-chat": "China",
     "/datalake/datastore1/yang/_hf_models/DeepSeek-V2-Lite": "China",
     "/datalake/datastore1/yang/_hf_models/DeepSeek-V2-Lite-Chat": "China",
-    "/datalake/datastore1/yang/_hf_models/GLM-4.7-Flash": "China",
     "/datalake/datastore1/yang/_hf_models/glm-4-9b-hf": "China",
     "/datalake/datastore1/yang/_hf_models/glm-4-9b-chat-hf": "China",
+    "/datalake/datastore1/yang/_hf_models/GLM-4.7-Flash": "China",
+    # ── arabic models ─────────────────────────────────────────────────────────
     "inceptionai/jais-13b": "UAE",
     "inceptionai/jais-13b-chat": "UAE",
     "inceptionai/Jais-2-8B-Chat": "UAE",
+    "inceptionai/Jais-2-70B-Chat": "UAE",
     "FreedomIntelligence/AceGPT-v2-8B": "UAE",
     "FreedomIntelligence/AceGPT-v2-8B-Chat": "UAE",
+    "QCRI/Fanar-2-27B-Instruct": "Qatar",
+    # ── mistral / french models ───────────────────────────────────────────────
     "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Base-2512": "France",
     "/datalake/datastore1/yang/_hf_models/Ministral-3-8B-Instruct-2512": "France",
+    "mistralai/Ministral-3-3B-Base-2512": "France",
+    "mistralai/Ministral-3-3B-Instruct-2512": "France",
+    "mistralai/Ministral-3-8B-Base-2512": "France",
+    "mistralai/Ministral-3-8B-Instruct-2512": "France",
+    "mistralai/Ministral-3-14B-Base-2512": "France",
+    "mistralai/Ministral-3-14B-Instruct-2512": "France",
+    "mistralai/Mistral-Medium-3.5-128B": "France",
+    "mistralai/Mistral-Small-4-119B-2603": "France",
     "/datalake/datastore1/yang/_hf_models/Lucie-7B": "France",
+    "/datalake/datastore1/yang/_hf_models/Gaperon-1125-8B": "France",
+    "/datalake/datastore1/yang/_hf_models/Gaperon-1125-8B-SFT": "France",
+    "/datalake/datastore1/yang/_hf_models/Gaperon-1125-24B": "France",
+    "/datalake/datastore1/yang/_hf_models/Gaperon-1125-24B-SFT": "France",
+    # ── european models ───────────────────────────────────────────────────────
     "/datalake/datastore1/yang/_hf_models/EuroLLM-9B-2512": "Europe",
     "/datalake/datastore1/yang/_hf_models/EuroLLM-9B-Instruct-2512": "Europe",
     "/datalake/datastore1/yang/_hf_models/EuroLLM-22B-2512": "Europe",
     "/datalake/datastore1/yang/_hf_models/EuroLLM-22B-Instruct-2512": "Europe",
     "/datalake/datastore1/yang/_hf_models/Teuken-7B-base-v0.6": "Europe",
     "/datalake/datastore1/yang/_hf_models/Teuken-7B-instruct-v0.6": "Europe",
+    # ── greek models ──────────────────────────────────────────────────────────
     "ilsp/Llama-Krikri-8B-Instruct": "Greece",
     "ilsp/Meltemi-7B-Instruct-v1.5": "Greece",
+    "/datalake/datastore1/yang/_hf_models/Minerva-7B-base-v1.0": "Greece",
+    # ── hindi models ──────────────────────────────────────────────────────────
     "sarvamai/OpenHathi-7B-Hi-v0.1-Base": "India",
     "krutrim-ai-labs/Krutrim-1-instruct": "India",
+    # ── southeast asian models ────────────────────────────────────────────────
     "aisingapore/Llama-SEA-LION-v3-8B": "Southeast Asian",
     "aisingapore/Llama-SEA-LION-v3-8B-IT": "Southeast Asian",
     "SeaLLMs/SeaLLM-7B-v2.5": "Southeast Asian",
     "SeaLLMs/SeaLLMs-v3-7B": "Southeast Asian",
     "SeaLLMs/SeaLLMs-v3-7B-Chat": "Southeast Asian",
+    # ── korean models ─────────────────────────────────────────────────────────
     "naver-hyperclovax/HyperCLOVAX-SEED-Omni-8B": "South Korea",
     "beomi/Llama-3-Open-Ko-8B": "South Korea",
-    "EleutherAI/polyglot-ko-12.8b": "South Korea",
     "EleutherAI/polyglot-ko-5.8b": "South Korea",
+    "EleutherAI/polyglot-ko-12.8b": "South Korea",
+    "/datalake/datastore1/yang/_hf_models/KORMo-10B-base": "South Korea",
+    "/datalake/datastore1/yang/_hf_models/KORMo-10B-sft": "South Korea",
+    # ── italian models ────────────────────────────────────────────────────────
+    "/datalake/datastore1/yang/_hf_models/LLaMAntino-3-ANITA-8B-Inst-DPO-ITA": "Italy",
+    # ── persian models ────────────────────────────────────────────────────────
+    "/datalake/datastore1/yang/_hf_models/PersianMind-v1.0": "Iran",
+    # ── japanese models ───────────────────────────────────────────────────────
+    "/datalake/datastore1/yang/_hf_models/Qwen3-Swallow-8B-CPT-v0.2": "Japan",
+    "/datalake/datastore1/yang/_hf_models/Qwen3-Swallow-8B-SFT-v0.2": "Japan",
+    # ── polish models ─────────────────────────────────────────────────────────
+    "/datalake/datastore1/yang/_hf_models/Bielik-Minitron-7B-v3.0-Instruct": "Poland",
+    "/datalake/datastore1/yang/_hf_models/Bielik-11B-v3-Base-20250730": "Poland",
+    # ── multilingual models ───────────────────────────────────────────────────
     "CohereLabs/aya-expanse-8b": "Multilingual",
+    # ── api models ────────────────────────────────────────────────────────────
+    "gemini-3-flash-preview": "USA",
+    "gpt-5.4-mini-2026-03-17": "USA",
+    "gpt-5.4-2026-03-05": "USA",
 }
 
-GAP_LANGUAGES = ["chinese", "arabic", "greek", "hindi", "indonesian", "korean", "italic", "french", "japanese", "spanish",
-                 "bengali", "dutch", "hebrew", "nepali", "persian", "polish", "russian", "telugu", "ukrainian"]
+GAP_LANGUAGES = [
+    "chinese", "arabic", "greek", "hindi", "indonesian", "korean", "italic",
+    "french", "japanese", "spanish", "bengali", "dutch", "hebrew", "nepali",
+    "persian", "polish", "russian", "telugu", "ukrainian",
+]
 
 ALL_METRICS = ["accuracy", "abstain_rate", "conf_err_rate", "cond_acc"]

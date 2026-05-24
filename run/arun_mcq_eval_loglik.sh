@@ -84,7 +84,7 @@ MODELS=(
     # "google/gemma-3-27b-pt"        # oom
     # "google/gemma-3-27b-it"        # oom
     # qwen3.5 models
-    # "/datalake/datastore1/yang/_hf_models/Qwen3.5-9B"
+    "/datalake/datastore1/yang/_hf_models/Qwen3.5-9B"
     # "/datalake/datastore1/yang/_hf_models/Qwen3.5-9B-Base"
     # "/datalake/datastore1/yang/_hf_models/Qwen3.5-4B"
     # "/datalake/datastore1/yang/_hf_models/Qwen3.5-4B-Base"
@@ -125,8 +125,35 @@ MODELS=(
     # persian models
     "/datalake/datastore1/yang/_hf_models/PersianMind-v1.0"
     # japanese models
-    # "/datalake/datastore1/yang/_hf_models/Qwen3-Swallow-8B-CPT-v0.2"
-    # "/datalake/datastore1/yang/_hf_models/Qwen3-Swallow-8B-SFT-v0.2"
+    "/datalake/datastore1/yang/_hf_models/Qwen3-Swallow-8B-CPT-v0.2"
+    "/datalake/datastore1/yang/_hf_models/Qwen3-Swallow-8B-SFT-v0.2"
+    # # mbzuai models
+    # "google/gemma-4-26B-A4B"
+    # "google/gemma-4-26B-A4B-it"
+    # "google/gemma-4-31B"
+    # "google/gemma-4-31B-it"
+    # "inceptionai/Jais-2-70B-Chat"
+    # "meta-llama/Llama-3.1-70B"
+    # "meta-llama/Llama-3.1-70B-Instruct"
+    # "mistralai/Ministral-3-14B-Base-2512"
+    # "mistralai/Ministral-3-14B-Instruct-2512"
+    # "mistralai/Ministral-3-3B-Base-2512"
+    # "mistralai/Ministral-3-3B-Instruct-2512"
+    # "mistralai/Ministral-3-8B-Base-2512"
+    # "mistralai/Ministral-3-8B-Instruct-2512"
+    # "mistralai/Mistral-Medium-3.5-128B"
+    # "mistralai/Mistral-Small-4-119B-2603"
+    # "QCRI/Fanar-2-27B-Instruct"
+    # "Qwen/Qwen3-14B"
+    # "Qwen/Qwen3-30B-A3B"
+    # "Qwen/Qwen3-30B-A3B-Instruct-2507"
+    # "Qwen/Qwen3.5-27B"
+    # "Qwen/Qwen3.5-35B-A3B"
+    # "Qwen/Qwen3.5-35B-A3B-Base"
+    # api models (results via gemini_ca_cs_v1 / openai_ca_cs_v1)
+    # "google/gemini-3-flash-preview"
+    # "gpt-5.4-mini-2026-03-17"
+    # "gpt-5.4-2026-03-05"
 
 )
 
@@ -230,14 +257,15 @@ EXTRA_ARGS=()
 # [ "$V3_CS" = true ]      && EXTRA_ARGS+=(--v3-cs)
 
 # ── Run 1: CS mode ───────────────────────────────────────────────────────────
-echo "======== CS run ========"
-python run_mcq_eval_loglik.py \
-    --dataset    "$DATASET"    \
-    --outdir     "$OUTDIR_CS"  \
-    --batch-size "$BATCH_SIZE" \
-    "${EXTRA_ARGS[@]}"         \
-    --models  "${MODELS[@]}"   \
-    --subsets "${SUBSETS_CS_ALL[@]}"
+# Disabled: CS already complete for the 8 models below; only CA is missing.
+# echo "======== CS run ========"
+# python run_mcq_eval_loglik.py \
+#     --dataset    "$DATASET"    \
+#     --outdir     "$OUTDIR_CS"  \
+#     --batch-size "$BATCH_SIZE" \
+#     "${EXTRA_ARGS[@]}"         \
+#     --models  "${MODELS[@]}"   \
+#     --subsets "${SUBSETS_CS_ALL[@]}"
 
 # ── Run 3: CA mode ────────────────────────────────────────────────────────────
 echo "======== CA run ========"
