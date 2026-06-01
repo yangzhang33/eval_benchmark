@@ -128,7 +128,8 @@ MODELS = [
     # ── api models ────────────────────────────────────────────────────────────
     "gemini-3-flash-preview",
     "gpt-5.4-mini-2026-03-17",
-    "gpt-5.4-2026-03-05"
+    "gpt-5.4-2026-03-05",
+    "claude-sonnet-4-6"
 ]
 
 SUBSETS = [
@@ -323,6 +324,7 @@ MODEL_COUNTRY = {
     "gemini-3-flash-preview": "USA",
     "gpt-5.4-mini-2026-03-17": "USA",
     "gpt-5.4-2026-03-05": "USA",
+    "claude-sonnet-4-6": "USA",
 }
 
 GAP_LANGUAGES = [

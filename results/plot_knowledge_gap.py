@@ -170,7 +170,8 @@ SHORT_NAMES = {
     # ── api models ────────────────────────────────────────────────────────────
     "gemini-3-flash-preview":                                                "Gemini-3-Flash",
     "gpt-5.4-mini-2026-03-17":                                               "GPT-5.4-Mini",
-    "gpt-5.4-2026-03-05":                                                     "GPT-5.4",
+    "gpt-5.4-2026-03-05":                                                    "GPT-5.4",
+    "claude-sonnet-4-6":                                                     "Claude-Sonnet-4.6",
 }
 
 # Country → home locale label (shared across all three panels)
